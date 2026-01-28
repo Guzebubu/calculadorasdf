@@ -1,0 +1,100 @@
+/* Estilos personalizados para la calculadora Golden Gate */
+/*fondo general y tipografias*/
+body {
+    background-color: #ffffffe6;
+    color:#000000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+/*Formato de cartas de todos las paginas*/
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(151, 148, 148, 0.893);
+    border: none;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+/*Parte superior de todas las tarjetas menos la de resultados*/
+.card-header {
+    background: linear-gradient(135deg, #958f8f, #0a58ca);
+    border-radius: 10px 10px 0 0 !important;
+    color:#eef2f5;
+    font-weight: 600;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+/* Boton de calcular*/
+.btn-calculate {
+    background: linear-gradient(135deg, #bea495, #0af166);
+    border: none;
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: all 0.3s;
+}
+/* Boton de calcular seleccionado*/
+.btn-calculate:hover {
+    background: linear-gradient(135deg,  #0af166, #bea495);
+    transform: scale(1.02);
+}
+
+.result-card {
+    background-color: #e7f1ff;
+    border-left: 4px solid #0d6efd;
+    border-radius: 5px;
+}
+/* parte superior de las tablas de resultados */
+.table th {
+    background-color: #000000;
+    color: #f8f9fa;
+    font-weight: 600;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(229, 68, 68, 0.05);
+}
+
+.alert-custom {
+    border-left: 4px solid #eef2f5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    .btn-calculate {
+        width: 100%;
+    }
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Badge para valores importantes */
+.value-badge {
+    background-color: #0d6efd;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+

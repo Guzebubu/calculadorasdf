@@ -1,0 +1,557 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-droplet-fill"></i> PCR Inicial - Cálculo de Componentes</h5>
+            </div>
+            <div class="card-body">
+                <form id="pcrForm">
+                    <div class="mb-3">
+                        <label for="num_reacciones" class="form-label">
+                            <i class="bi bi-123"></i> Número de Reacciones:
+                        </label>
+                        <input type="number" class="form-control" id="num_reacciones" value="21" min="1" step="1">
+                        <div class="form-text">Número total de reacciones PCR a preparar</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="volumen_adn" class="form-label">
+                            <i class="bi bi-dna"></i> Volumen de ADN por Reacción (µl):
+                        </label>
+                        <input type="number" class="form-control" id="volumen_adn" value="1.5" min="0.1" step="0.1">
+                        <div class="form-text">Recomendado: 1-1.5 µl por reacción</div>
+                    </div>
+                    
+                    <!-- CAMPO DE PORCENTAJE EXTRA (EDITABLE) -->
+                    <div class="mb-3">
+                        <label for="porcentaje_extra" class="form-label">
+                            <i class="bi bi-percent"></i> Porcentaje Extra Master Mix (%):
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="porcentaje_extra" value="10" min="0" max="100" step="0.1">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> Extra para error de pipeteo. Ingrese 0 si no desea extra.
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-calculate w-100" onclick="calcularPCR()">
+                        <i class="bi bi-calculator"></i> Calcular Volúmenes
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información del Protocolo</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Volumen total por reacción: <strong>50 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Buffer Hifi 5x: <strong>10 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Primers Fw/Rv: <strong>2 µl cada uno</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Polimerasa: <strong>0.4 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> <strong>Nota:</strong> El porcentaje extra se aplica al Master Mix (todos los componentes excepto ADN)
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-success d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados del Cálculo</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarPDF()" id="pdfButton" disabled>
+                        <i class="bi bi-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarExcel()" id="excelButton" disabled>
+                        <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="resultados" class="result-card p-4 mb-4">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-arrow-clockwise"></i> Complete el formulario y haga clic en "Calcular"
+                    </p>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="tablaPCR">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="bi bi-grid"></i> Componente</th>
+                                <th><i class="bi bi-eyedropper"></i> µl/Reacción</th>
+                                <th><i class="bi bi-eyedropper"></i> µl Totales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResultados">
+                            <!-- Los resultados se insertarán aquí dinámicamente -->
+                        </tbody>
+                        <tfoot id="tablaFooter" style="display: none;">
+                            <tr class="table-success">
+                                <td><strong>TOTAL FINAL</strong></td>
+                                <td><strong>50.0</strong></td>
+                                <td><strong id="totalFinal">0.0</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <!-- Información adicional para exportación -->
+                <div id="infoAdicional" class="mt-3" style="display: none;">
+                    <h6><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
+                    <table class="table table-sm table-bordered">
+                        <tr>
+                            <td>Fecha de cálculo:</td>
+                            <td id="fechaCalculo"></td>
+                        </tr>
+                        <tr>
+                            <td>Protocolo:</td>
+                            <td>PCR Inicial - Volumen: 50 µl por reacción</td>
+                        </tr>
+                        <tr>
+                            <td>Notas:</td>
+                            <td>El porcentaje extra se aplica solo al Master Mix (todos los componentes excepto ADN)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales para almacenar resultados
+let resultadosPCR = null;
+
+function calcularPCR() {
+    const numReacciones = $('#num_reacciones').val();
+    const volumenAdn = $('#volumen_adn').val();
+    const porcentajeExtra = $('#porcentaje_extra').val();
+    
+    // Validación básica
+    if (numReacciones < 1) {
+        alert('El número de reacciones debe ser al menos 1');
+        return;
+    }
+    
+    // Mostrar loading
+    $('#resultados').html(`
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Calculando...</span>
+            </div>
+            <p class="mt-2">Calculando volúmenes...</p>
+        </div>
+    `);
+    
+    // Deshabilitar botones de exportación
+    $('#pdfButton, #excelButton').prop('disabled', true);
+    
+    // Llamada AJAX al endpoint
+    $.ajax({
+        url: '/api/pcr_inicial',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            num_reacciones: numReacciones,
+            volumen_adn: volumenAdn,
+            porcentaje_extra: porcentajeExtra
+        }),
+        success: function(response) {
+            if (response.error) {
+                $('#resultados').html(`
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error: ${response.error}
+                    </div>
+                `);
+                return;
+            }
+            
+            // Guardar resultados globalmente
+            resultadosPCR = response;
+            resultadosPCR.fecha = new Date().toLocaleString('es-ES');
+            resultadosPCR.volumen_adn = parseFloat(volumenAdn);
+            
+            // Mostrar resumen
+            $('#resultados').html(`
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-check-circle text-success"></i> Resumen</h6>
+                        <p class="mb-1"><strong>Reacciones:</strong> <span class="badge bg-primary">${response.num_reacciones}</span></p>
+                        <p class="mb-1"><strong>Extra aplicado:</strong> <span class="badge ${response.porcentaje_extra > 0 ? 'bg-warning' : 'bg-secondary'}">${response.porcentaje_extra}%</span></p>
+                        <p class="mb-0"><strong>Total final:</strong> <span class="badge bg-success">${response.total_con_extra} µl</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-lightbulb"></i> Recomendaciones</h6>
+                        <p class="mb-0 small">Master Mix: <strong>${response.vol_master_mix} µl</strong></p>
+                        <p class="mb-0 small">ADN total: <strong>${response.vol_adn_total} µl</strong></p>
+                        <p class="mb-0 small">Preparar en tubo de: <strong>${Math.ceil(response.total_con_extra * 1.2)} µl</strong></p>
+                    </div>
+                </div>
+            `);
+            
+            // Actualizar fecha
+            $('#fechaCalculo').text(resultadosPCR.fecha);
+            
+            // Actualizar tabla
+            const tabla = `
+                <tr>
+                    <td><i class="bi bi-droplet"></i> Agua</td>
+                    <td>32.6</td>
+                    <td>${response.agua.toFixed(1)}</td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-box"></i> Buffer 5x Hifi</td>
+                    <td>10.0</td>
+                    <td>${response.buffer.toFixed(1)}</td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-arrow-right-circle"></i> Primer Forward</td>
+                    <td>2.0</td>
+                    <td>${response.fw.toFixed(1)}</td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-arrow-left-circle"></i> Primer Reverse</td>
+                    <td>2.0</td>
+                    <td>${response.rv.toFixed(1)}</td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-dna"></i> ADN (${volumenAdn} µl)</td>
+                    <td>${parseFloat(volumenAdn).toFixed(1)}</td>
+                    <td>${response.adn.toFixed(1)}</td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-gear"></i> Polimerasa</td>
+                    <td>0.4</td>
+                    <td>${response.polimerasa.toFixed(1)}</td>
+                </tr>
+            `;
+            $('#tablaResultados').html(tabla);
+            $('#tablaFooter').show();
+            $('#totalFinal').text(response.total_con_extra.toFixed(1) + ' µl');
+            
+            // Mostrar información adicional
+            $('#infoAdicional').show();
+            
+            // Habilitar botones de exportación
+            $('#pdfButton, #excelButton').prop('disabled', false);
+        },
+        error: function(xhr, status, error) {
+            $('#resultados').html(`
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error en el servidor. Intente nuevamente.
+                </div>
+            `);
+            console.error('Error:', error);
+        }
+    });
+}
+
+// Función para exportar a PDF
+function exportarPDF() {
+    if (!resultadosPCR) {
+        alert('Primero debe calcular los resultados');
+        return;
+    }
+    
+    // Mostrar mensaje de procesamiento
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Generando PDF...</p></div>');
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const fecha = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Título
+    doc.setFontSize(20);
+    doc.setTextColor(40, 167, 69); // Verde
+    doc.text('Reporte de PCR Inicial', 105, 20, null, null, 'center');
+    
+    // Información general
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${fecha}`, 20, 35);
+    doc.text(`Laboratorio: SDF Lab`, 20, 42);
+    doc.text(`Protocolo: PCR Inicial - 50 µl por reacción`, 20, 49);
+    
+    // Parámetros de entrada
+    doc.setFontSize(14);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Parámetros de Entrada', 20, 65);
+    
+    doc.setFontSize(11);
+    doc.text(`Número de reacciones: ${resultadosPCR.num_reacciones}`, 25, 75);
+    doc.text(`Volumen de ADN por reacción: ${resultadosPCR.volumen_adn} µl`, 25, 82);
+    doc.text(`Porcentaje extra: ${resultadosPCR.porcentaje_extra}%`, 25, 89);
+    
+    // Resultados
+    doc.setFontSize(14);
+    doc.text('Resultados del Cálculo', 20, 105);
+    
+    // Tabla de resultados
+    const startY = 115;
+    const columnWidths = [80, 40, 40]; // Ancho de columnas
+    const headers = ['Componente', 'µl/Reacción', 'µl Totales'];
+    const data = [
+        ['Agua', '32.6', resultadosPCR.agua.toFixed(1)],
+        ['Buffer 5x Hifi', '10.0', resultadosPCR.buffer.toFixed(1)],
+        ['Primer Forward', '2.0', resultadosPCR.fw.toFixed(1)],
+        ['Primer Reverse', '2.0', resultadosPCR.rv.toFixed(1)],
+        ['ADN', resultadosPCR.volumen_adn.toFixed(1), resultadosPCR.adn.toFixed(1)],
+        ['Polimerasa', '0.4', resultadosPCR.polimerasa.toFixed(1)],
+        ['TOTAL FINAL', '50.0', resultadosPCR.total_con_extra.toFixed(1)]
+    ];
+    
+    // Encabezado de tabla
+    doc.setFillColor(40, 167, 69);
+    doc.rect(20, startY, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.text('Resumen de Volúmenes', 105, startY + 7, null, null, 'center');
+    
+    // Contenido de tabla
+    let yPos = startY + 15;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    // Dibujar encabezados
+    headers.forEach((header, i) => {
+        doc.text(header, 22 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), yPos);
+    });
+    
+    yPos += 10;
+    
+    // Dibujar datos
+    data.forEach((row, rowIndex) => {
+        row.forEach((cell, i) => {
+            const x = 22 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+            if (rowIndex === data.length - 1) {
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(40, 167, 69);
+            }
+            doc.text(cell, x, yPos);
+            if (rowIndex === data.length - 1) {
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(0, 0, 0);
+            }
+        });
+        yPos += 7;
+    });
+    
+    // Información adicional
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Información Adicional', 20, yPos);
+    
+    doc.setFontSize(10);
+    yPos += 10;
+    doc.text(`Master Mix (sin ADN): ${resultadosPCR.vol_master_mix.toFixed(1)} µl`, 25, yPos);
+    yPos += 7;
+    doc.text(`ADN total necesario: ${resultadosPCR.vol_adn_total.toFixed(1)} µl`, 25, yPos);
+    yPos += 7;
+    doc.text(`Volumen recomendado del tubo: ${Math.ceil(resultadosPCR.total_con_extra * 1.2)} µl`, 25, yPos);
+    
+    // Notas
+    yPos += 15;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Notas:', 20, yPos);
+    yPos += 7;
+    doc.text('- El porcentaje extra se aplica solo al Master Mix (todos los componentes excepto ADN)', 25, yPos);
+    yPos += 7;
+    doc.text('- Vortex suavemente y centrifugue brevemente antes de usar', 25, yPos);
+    yPos += 7;
+    doc.text('- Mantener los componentes en hielo durante la preparación', 25, yPos);
+    
+    // Pie de página
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Página ${i} de ${pageCount}`, 105, 290, null, null, 'center');
+        doc.text('BioCalculadora - PCR Inicial', 105, 295, null, null, 'center');
+    }
+    
+    // Guardar PDF
+    doc.save(`pcr_inicial_${fecha.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+    
+    // Restaurar mensaje
+    setTimeout(() => {
+        $('#resultados').html(`
+            <div class="alert alert-success">
+                <h6><i class="bi bi-file-pdf"></i> PDF generado exitosamente</h6>
+                <p>El archivo se ha descargado automáticamente.</p>
+            </div>
+        `);
+    }, 500);
+}
+
+// Función para exportar a Excel (CSV)
+function exportarExcel() {
+    if (!resultadosPCR) {
+        alert('Primero debe calcular los resultados');
+        return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Encabezados
+    const headers = [
+        "PCR Inicial - Reporte",
+        "",
+        ""
+    ];
+    
+    csvContent += headers.join(",") + "\n";
+    
+    // Información general
+    csvContent += `"Fecha","${resultadosPCR.fecha}"\n`;
+    csvContent += `"Protocolo","PCR Inicial - 50 µl por reacción"\n`;
+    csvContent += "\n";
+    
+    // Parámetros de entrada
+    csvContent += '"Parámetros de Entrada","",""' + "\n";
+    csvContent += `"Número de reacciones","${resultadosPCR.num_reacciones}",""\n`;
+    csvContent += `"Volumen de ADN por reacción","${resultadosPCR.volumen_adn}","µl"\n`;
+    csvContent += `"Porcentaje extra","${resultadosPCR.porcentaje_extra}","%"\n`;
+    csvContent += "\n";
+    
+    // Resultados
+    csvContent += '"Resultados del Cálculo","",""' + "\n";
+    csvContent += '"Componente","µl/Reacción","µl Totales"' + "\n";
+    csvContent += `"Agua","32.6","${resultadosPCR.agua.toFixed(1)}"\n`;
+    csvContent += `"Buffer 5x Hifi","10.0","${resultadosPCR.buffer.toFixed(1)}"\n`;
+    csvContent += `"Primer Forward","2.0","${resultadosPCR.fw.toFixed(1)}"\n`;
+    csvContent += `"Primer Reverse","2.0","${resultadosPCR.rv.toFixed(1)}"\n`;
+    csvContent += `"ADN","${resultadosPCR.volumen_adn.toFixed(1)}","${resultadosPCR.adn.toFixed(1)}"\n`;
+    csvContent += `"Polimerasa","0.4","${resultadosPCR.polimerasa.toFixed(1)}"\n`;
+    csvContent += `"TOTAL FINAL","50.0","${resultadosPCR.total_con_extra.toFixed(1)}"\n`;
+    csvContent += "\n";
+    
+    // Información adicional
+    csvContent += '"Información Adicional","",""' + "\n";
+    csvContent += `"Master Mix (sin ADN)","${resultadosPCR.vol_master_mix.toFixed(1)}","µl"\n`;
+    csvContent += `"ADN total necesario","${resultadosPCR.vol_adn_total.toFixed(1)}","µl"\n`;
+    csvContent += `"Volumen recomendado del tubo","${Math.ceil(resultadosPCR.total_con_extra * 1.2)}","µl"\n`;
+    csvContent += "\n";
+    
+    // Notas
+    csvContent += '"Notas","",""' + "\n";
+    csvContent += '"El porcentaje extra se aplica solo al Master Mix (todos los componentes excepto ADN)","",""' + "\n";
+    csvContent += '"Vortex suavemente y centrifugue brevemente antes de usar","",""' + "\n";
+    csvContent += '"Mantener los componentes en hielo durante la preparación","",""' + "\n";
+    
+    // Descargar
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `pcr_inicial_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    $('#resultados').html(`
+        <div class="alert alert-success">
+            <h6><i class="bi bi-file-excel"></i> Excel (CSV) generado exitosamente</h6>
+            <p>El archivo se ha descargado automáticamente.</p>
+        </div>
+    `);
+}
+
+// Calcular al cargar la página
+$(document).ready(function() {
+    calcularPCR();
+    
+    // Event listeners para recálculo automático
+    $('#num_reacciones, #volumen_adn, #porcentaje_extra').on('change keyup', function() {
+        calcularPCR();
+    });
+    
+    // Inicializar tooltips si usas Bootstrap 5
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+
+<style>
+/* Estilos adicionales para los botones de exportación */
+.btn-group .btn {
+    border-radius: 5px !important;
+    margin-left: 5px;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-group .btn:first-child {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.btn-group .btn:last-child {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+/* Mejorar la visualización de la tabla */
+#tablaPCR {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#tablaPCR th {
+    position: sticky;
+    top: 0;
+    background-color: #343a40;
+    z-index: 10;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+        margin-left: 0;
+    }
+}
+</style>
+{% endblock %}

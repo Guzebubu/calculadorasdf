@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Medios de Cultivo - Cálculo</h5>
+            </div>
+            <div class="card-body">
+                <form id="mediosForm">
+                    <div class="mb-3">
+                        <label for="tipo_medio" class="form-label">Tipo de Medio:</label>
+                        <select class="form-control" id="tipo_medio">
+                            <option value="germinacion">Medio de Germinación</option>
+                            <option value="co_culture">Medio de Co-cultivo</option>
+                            <option value="selection">Medio de Selección</option>
+                            <option value="rooting">Medio de Enraizamiento</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="volumen_preparar" class="form-label">Volumen a Preparar (ml):</label>
+                        <input type="number" class="form-control" id="volumen_preparar" value="1000" step="10">
+                        <div class="form-text">Volumen total del medio en mililitros</div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-calculate w-100" onclick="calcularMedios()">Calcular</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">Descripción de Medios</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Germinación:</strong> Para germinación de semillas estériles.</p>
+                <p><strong>Co-cultivo:</strong> Para co-cultivo con Agrobacterium.</p>
+                <p><strong>Selección:</strong> Contiene antibióticos para selección.</p>
+                <p><strong>Enraizamiento:</strong> Para inducción de raíces en explantes.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Resultados</h5>
+            </div>
+            <div class="card-body">
+                <div id="resultados" class="result-card p-3">
+                    <p class="text-muted">Seleccione el tipo de medio y haga clic en "Calcular"</p>
+                </div>
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Componente</th>
+                                <th>Cantidad</th>
+                                <th>Unidad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResultados">
+                            <!-- Los resultados se insertarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <h6>Información Adicional</h6>
+                    <div id="infoAdicional" class="alert alert-info">
+                        <!-- Información específica del medio -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calcularMedios() {
+    const tipoMedio = $('#tipo_medio').val();
+    const volumenPreparar = $('#volumen_preparar').val();
+
+    // Validación
+    if (!volumenPreparar || volumenPreparar <= 0) {
+        $('#resultados').html('<div class="alert alert-danger">Ingrese un volumen válido (mayor a 0 ml)</div>');
+        return;
+    }
+
+    // Mostrar loading
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+
+    // ¡IMPORTANTE! URL debe ser /api/medios
+    $.ajax({
+        url: '/api/medios',  // CORREGIDO: /api/medios
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            tipo_medio: tipoMedio,
+            volumen_preparar: parseFloat(volumenPreparar)
+        }),
+        success: function(response) {
+            console.log("Respuesta del servidor Medios:", response);
+            
+            if (response.error) {
+                $('#resultados').html(`<div class="alert alert-danger">${response.error}</div>`);
+                return;
+            }
+
+            // Mostrar resumen
+            const nombresMedios = {
+                'germinacion': 'Medio de Germinación',
+                'co_culture': 'Medio de Co-cultivo',
+                'selection': 'Medio de Selección',
+                'rooting': 'Medio de Enraizamiento'
+            };
+            
+            $('#resultados').html(`
+                <h6>Resumen del Cálculo</h6>
+                <p><strong>Tipo de medio:</strong> ${nombresMedios[tipoMedio] || tipoMedio}</p>
+                <p><strong>Volumen total:</strong> ${response.h2o_ml} ml</p>
+                <p><strong>pH recomendado:</strong> ${response.ph}</p>
+            `);
+
+            // Actualizar tabla de componentes
+            let tablaHTML = '';
+            
+            // Componentes base para todos los medios
+            tablaHTML += `
+                <tr>
+                    <td>Agua destilada</td>
+                    <td>${response.h2o_ml}</td>
+                    <td>ml</td>
+                </tr>
+                <tr>
+                    <td>Sales MS</td>
+                    <td>${response.ms_g}</td>
+                    <td>g</td>
+                </tr>
+                <tr>
+                    <td>Sacarosa</td>
+                    <td>${response.sacarosa_g}</td>
+                    <td>g</td>
+                </tr>
+                <tr>
+                    <td>Agar</td>
+                    <td>${response.agar_g}</td>
+                    <td>g</td>
+                </tr>
+            `;
+            
+            // Componentes específicos por tipo de medio
+            if (tipoMedio === 'co_culture') {
+                tablaHTML += `
+                    <tr>
+                        <td>2,4-D (1 mg/ml)</td>
+                        <td>${response.d24_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                    <tr>
+                        <td>Kinetina (1 mg/ml)</td>
+                        <td>${response.kinetina_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                `;
+            } else if (tipoMedio === 'selection') {
+                tablaHTML += `
+                    <tr>
+                        <td>Tzeatina (1 mg/ml)</td>
+                        <td>${response.tzeatina_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                    <tr>
+                        <td>Meropenem (50 mg/ml)</td>
+                        <td>${response.meropenem_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                    <tr>
+                        <td>Kanamicina (50 mg/ml)</td>
+                        <td>${response.kanamicina_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                `;
+            } else if (tipoMedio === 'rooting') {
+                tablaHTML += `
+                    <tr>
+                        <td>IAA (1 mg/ml)</td>
+                        <td>${response.iaa_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                    <tr>
+                        <td>Meropenem (50 mg/ml)</td>
+                        <td>${response.meropenem_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                    <tr>
+                        <td>Kanamicina (50 mg/ml)</td>
+                        <td>${response.kanamicina_ul}</td>
+                        <td>µl</td>
+                    </tr>
+                `;
+            }
+            
+            $('#tablaResultados').html(tablaHTML);
+
+            // Actualizar información adicional
+            let infoHTML = '';
+            if (tipoMedio === 'germinacion') {
+                infoHTML = `
+                    <h6><i class="fas fa-seedling"></i> Instrucciones para Germinación:</h6>
+                    <ul class="mb-0">
+                        <li>Esterilizar semillas antes de sembrar</li>
+                        <li>Mantener a 25°C con fotoperiodo 16/8 h</li>
+                        <li>Germinación en 7-10 días</li>
+                    </ul>
+                `;
+            } else if (tipoMedio === 'co_culture') {
+                infoHTML = `
+                    <h6><i class="fas fa-bacteria"></i> Instrucciones para Co-cultivo:</h6>
+                    <ul class="mb-0">
+                        <li>Usar Agrobacterium en fase logarítmica (OD600 = 0.6-0.8)</li>
+                        <li>Co-cultivar por 48-72 horas en oscuridad</li>
+                        <li>Lavar explantes con agua estéril + antibiótico después</li>
+                    </ul>
+                `;
+            } else if (tipoMedio === 'selection') {
+                infoHTML = `
+                    <h6><i class="fas fa-filter"></i> Instrucciones para Selección:</h6>
+                    <ul class="mb-0">
+                        <li>Cambiar medio cada 2 semanas</li>
+                        <li>Mantener en oscuridad los primeros 7 días</li>
+                        <li>Selección durante 4-6 semanas</li>
+                    </ul>
+                `;
+            } else if (tipoMedio === 'rooting') {
+                infoHTML = `
+                    <h6><i class="fas fa-root"></i> Instrucciones para Enraizamiento:</h6>
+                    <ul class="mb-0">
+                        <li>Mantener en oscuridad los primeros 5 días</li>
+                        <li>Transferir a luz después de iniciado el enraizamiento</li>
+                        <li>Enraizamiento en 2-3 semanas</li>
+                    </ul>
+                `;
+            }
+            
+            $('#infoAdicional').html(infoHTML);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error en la petición Medios:", error, xhr.responseText);
+            $('#resultados').html('<div class="alert alert-danger">Error al calcular. Verifica la consola para detalles.</div>');
+        }
+    });
+}
+
+// Calcular al cargar la página
+$(document).ready(function() {
+    calcularMedios();
+});
+
+// Recalcular cuando cambie el tipo de medio
+$('#tipo_medio').change(function() {
+    calcularMedios();
+});
+
+// Recalcular cuando cambie el volumen
+$('#volumen_preparar').on('input', function() {
+    calcularMedios();
+});
+</script>
+
+<style>
+/* Estilos específicos para Medios */
+.result-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.alert-info {
+    background-color: #e8f4f8;
+    border-color: #b6e0f5;
+}
+
+/* Colores por tipo de medio */
+.medio-germinacion {
+    border-color: #28a745;
+}
+
+.medio-co-culture {
+    border-color: #17a2b8;
+}
+
+.medio-selection {
+    border-color: #ffc107;
+}
+
+.medio-rooting {
+    border-color: #6f42c1;
+}
+</style>
+{% endblock %}

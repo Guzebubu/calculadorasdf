@@ -1,0 +1,370 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">PCR DreamTaq - Cálculo de Master Mix</h5>
+            </div>
+            <div class="card-body">
+                <form id="dreamTaqForm">
+                    <div class="mb-3">
+                        <label for="num_reacciones" class="form-label">
+                            <i class="bi bi-123"></i> Número de Reacciones:
+                        </label>
+                        <input type="number" class="form-control" id="num_reacciones" value="8" step="1" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="porcentaje_extra" class="form-label">
+                            <i class="bi bi-percent"></i> Porcentaje Extra (%):
+                        </label>
+                        <input type="number" class="form-control" id="porcentaje_extra" value="10" step="0.1" min="0" max="100">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> Recomendado: 10% para compensar pérdidas por pipeteo
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-calculate w-100" onclick="calcularDreamTaq()">
+                        <i class="bi bi-calculator"></i> Calcular
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Volumen total por reacción: <strong>10 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Buffer 10X: <strong>1 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> dNTPs (10 mM): <strong>0.2 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> Primers (10 µM): <strong>0.4 µl cada uno</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> DreamTaq Polymerase: <strong>0.08 µl</strong>
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> ADN molde: <strong>1 µl</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarPDFDreamTaq()" id="pdfButtonDreamTaq" disabled>
+                        <i class="bi bi-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarExcelDreamTaq()" id="excelButtonDreamTaq" disabled>
+                        <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="resultados" class="result-card p-4 mb-4">
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-arrow-clockwise"></i> Complete el formulario y haga clic en "Calcular"
+                    </p>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="tablaDreamTaq">
+                        <thead class="table-primary">
+                            <tr>
+                                <th><i class="bi bi-grid"></i> Componente</th>
+                                <th><i class="bi bi-eyedropper"></i> µl/Reacción</th>
+                                <th><i class="bi bi-eyedropper"></i> µl Totales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResultados">
+                            <!-- Los resultados se insertarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-card-checklist"></i> Resumen</h6>
+                        <table class="table table-sm table-bordered">
+                            <tr>
+                                <td>Número de reacciones:</td>
+                                <td id="res-num-reacciones">-</td>
+                            </tr>
+                            <tr>
+                                <td>Porcentaje extra:</td>
+                                <td id="res-porcentaje-extra">-</td>
+                            </tr>
+                            <tr>
+                                <td>Volumen por tubo:</td>
+                                <td id="res-por-tubo">-</td>
+                            </tr>
+                            <tr>
+                                <td>Master Mix (sin ADN):</td>
+                                <td id="res-master-mix">-</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Volumen total:</strong></td>
+                                <td><strong id="res-total">-</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Instrucciones:</h6>
+                            <ol class="mb-0 small">
+                                <li>Mezclar en este orden: Agua, Buffer, dNTPs, Primers, DreamTaq</li>
+                                <li>Vortex suavemente y centrifugar brevemente</li>
+                                <li>Añadir <span id="res-master-por-tubo">0</span> µL de Master Mix a cada tubo</li>
+                                <li>Añadir 1 µL de ADN a cada tubo</li>
+                                <li>Volumen final por tubo: 10 µL</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Información adicional para exportación -->
+                <div id="infoAdicionalDreamTaq" class="mt-3" style="display: none;">
+                    <h6><i class="bi bi-info-circle"></i> Información Técnica</h6>
+                    <table class="table table-sm table-bordered">
+                        <tr>
+                            <td>Fecha de cálculo:</td>
+                            <td id="fechaCalculoDreamTaq"></td>
+                        </tr>
+                        <tr>
+                            <td>Protocolo:</td>
+                            <td>PCR DreamTaq - Volumen: 10 µl por reacción</td>
+                        </tr>
+                        <tr>
+                            <td>Enzima:</td>
+                            <td>DreamTaq DNA Polymerase (Thermo Scientific)</td>
+                        </tr>
+                        <tr>
+                            <td>Condiciones:</td>
+                            <td>95°C 2min → [95°C 30s → 58°C 30s → 72°C 1min/kb] × 30 → 72°C 5min</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+// Función para exportar a Excel (CSV) - DreamTaq (VERSIÓN REVISADA)
+function exportarExcelDreamTaq() {
+    if (!resultadosDreamTaq) {
+        alert('Primero debe calcular los resultados');
+        return;
+    }
+    
+    try {
+        // Mostrar mensaje de procesamiento
+        $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Generando archivo Excel...</p></div>');
+        
+        // Crear contenido CSV de manera más segura
+        let csvRows = [];
+        
+        // 1. Encabezado
+        csvRows.push(['PCR DreamTaq - Reporte', '', '']);
+        csvRows.push([]); // Línea en blanco
+        
+        // 2. Información general
+        csvRows.push(['Fecha', resultadosDreamTaq.fecha || new Date().toLocaleString('es-ES')]);
+        csvRows.push(['Protocolo', 'PCR DreamTaq - 10 µl por reacción']);
+        csvRows.push(['Enzima', 'DreamTaq DNA Polymerase (Thermo Scientific)']);
+        csvRows.push([]); // Línea en blanco
+        
+        // 3. Parámetros de entrada
+        csvRows.push(['Parámetros de Entrada', '', '']);
+        csvRows.push(['Número de reacciones', resultadosDreamTaq.num_reacciones || 0, '']);
+        csvRows.push(['Porcentaje extra', (resultadosDreamTaq.porcentaje_extra || 0) + '%', '']);
+        csvRows.push(['Volumen por reacción', '10', 'µl']);
+        csvRows.push([]); // Línea en blanco
+        
+        // 4. Resultados del cálculo
+        csvRows.push(['Resultados del Cálculo', '', '']);
+        csvRows.push(['Componente', 'µl/Reacción', 'µl Totales']);
+        
+        // Calcular factor extra
+        const factorExtra = resultadosDreamTaq.porcentaje_extra ? 
+                          1 + (resultadosDreamTaq.porcentaje_extra / 100) : 1;
+        const numReacciones = resultadosDreamTaq.num_reacciones || 1;
+        
+        // Agregar filas de componentes
+        csvRows.push([
+            'Agua libre de nucleasas',
+            ((resultadosDreamTaq.agua || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.agua || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'Buffer 10X',
+            ((resultadosDreamTaq.buffer || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.buffer || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'dNTPs (10 mM)',
+            ((resultadosDreamTaq.dntps || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.dntps || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'Primer Forward (10 µM)',
+            ((resultadosDreamTaq.fw || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.fw || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'Primer Reverse (10 µM)',
+            ((resultadosDreamTaq.rv || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.rv || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'DreamTaq DNA Polymerase',
+            ((resultadosDreamTaq.dream_taq || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.dream_taq || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'MASTER MIX (sin ADN)',
+            ((resultadosDreamTaq.master_mix_sin_adn || 0) / (numReacciones * factorExtra)).toFixed(2),
+            (resultadosDreamTaq.master_mix_sin_adn || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'ADN molde',
+            ((resultadosDreamTaq.dna || 0) / numReacciones).toFixed(2),
+            (resultadosDreamTaq.dna || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([
+            'TOTAL POR TUBO',
+            '10.00',
+            (resultadosDreamTaq.total_con_extra || 0).toFixed(2)
+        ]);
+        
+        csvRows.push([]); // Línea en blanco
+        
+        // 5. Información adicional
+        csvRows.push(['Información Adicional', '', '']);
+        csvRows.push([
+            'Master Mix por tubo',
+            ((resultadosDreamTaq.master_mix_sin_adn || 0) / numReacciones).toFixed(2),
+            'µl'
+        ]);
+        
+        csvRows.push([
+            'ADN total necesario',
+            (resultadosDreamTaq.dna || 0).toFixed(2),
+            'µl'
+        ]);
+        
+        csvRows.push([
+            'Volumen recomendado del tubo',
+            Math.ceil((resultadosDreamTaq.total_con_extra || 0) * 1.2).toString(),
+            'µl'
+        ]);
+        
+        csvRows.push([]); // Línea en blanco
+        
+        // 6. Condiciones de PCR
+        csvRows.push(['Condiciones Recomendadas de PCR', '', '']);
+        csvRows.push(['Desnaturalización inicial', '95°C', '2 minutos']);
+        csvRows.push(['Ciclos (30 repeticiones)', '', '']);
+        csvRows.push(['Desnaturalización', '95°C', '30 segundos']);
+        csvRows.push(['Alineamiento', '58°C', '30 segundos']);
+        csvRows.push(['Extensión', '72°C', '1 minuto/kb']);
+        csvRows.push(['Extensión final', '72°C', '5 minutos']);
+        csvRows.push([]); // Línea en blanco
+        
+        // 7. Notas
+        csvRows.push(['Notas', '', '']);
+        csvRows.push(['El porcentaje extra se aplica a todos los componentes del Master Mix', '', '']);
+        csvRows.push(['Mantener todos los componentes en hielo durante la preparación', '', '']);
+        csvRows.push(['Alícuotear el Master Mix antes de añadir el ADN', '', '']);
+        csvRows.push(['Para mejor rendimiento, preparar Master Mix fresco', '', '']);
+        
+        // Convertir array a texto CSV
+        let csvContent = "";
+        csvRows.forEach(row => {
+            // Procesar cada celda: agregar comillas y escapar comillas existentes
+            const escapedRow = row.map(cell => {
+                if (cell === null || cell === undefined) return '""';
+                const cellStr = String(cell);
+                // Escapar comillas dobles duplicándolas
+                const escapedCell = cellStr.replace(/"/g, '""');
+                // Agregar comillas si contiene comas, saltos de línea o comillas
+                if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
+                    return `"${escapedCell}"`;
+                }
+                return `"${escapedCell}"`; // Siempre agregar comillas para consistencia
+            });
+            csvContent += escapedRow.join(',') + '\n';
+        });
+        
+        // Codificar URI
+        const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+        
+        // Crear enlace de descarga
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        
+        // Nombre del archivo con fecha
+        const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const nombreArchivo = `pcr_dreamtaq_${fecha}.csv`;
+        link.setAttribute("download", nombreArchivo);
+        
+        // Agregar al DOM, hacer clic y remover
+        document.body.appendChild(link);
+        
+        // Forzar el clic
+        if (document.createEvent) {
+            const event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+            link.dispatchEvent(event);
+        } else {
+            link.click();
+        }
+        
+        document.body.removeChild(link);
+        
+        // Restaurar mensaje de éxito después de un breve delay
+        setTimeout(() => {
+            $('#resultados').html(`
+                <div class="alert alert-success">
+                    <h6><i class="bi bi-file-excel"></i> Excel (CSV) generado exitosamente</h6>
+                    <p>Archivo descargado: <strong>${nombreArchivo}</strong></p>
+                    <p class="small mb-0">Si la descarga no inicia automáticamente, revise la carpeta de descargas de su navegador.</p>
+                </div>
+            `);
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error al generar Excel:', error);
+        $('#resultados').html(`
+            <div class="alert alert-danger">
+                <h6><i class="bi bi-exclamation-triangle"></i> Error al generar Excel</h6>
+                <p>${error.message}</p>
+                <p class="small">Por favor, recalcule e intente nuevamente.</p>
+                <button class="btn btn-sm btn-warning mt-2" onclick="calcularDreamTaq()">Recalcular</button>
+            </div>
+        `);
+    }
+}

@@ -1,0 +1,1082 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Nivel 1 (Lv1) - Cálculo de Múltiples Ligaciones</h5>
+                <button type="button" class="btn btn-success btn-sm" onclick="agregarLigacion()">
+                    <i class="fas fa-plus"></i> Agregar Ligación
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Contenedor para múltiples formularios de ligación -->
+                <div id="ligaciones-container">
+                    <!-- Las ligaciones se agregarán aquí dinámicamente -->
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="button" class="btn btn-calculate" onclick="calcularTodasLigaciones()">
+                        <i class="fas fa-calculator"></i> Calcular Todas las Ligaciones
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h5 class="mb-0">Resultados de Todas las Ligaciones</h5>
+        </div>
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <button type="button" class="btn btn-export" onclick="exportarPDF()">
+                <i class="fas fa-file-pdf me-1"></i> PDF
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="exportarExcel()">
+                <i class="fas fa-file-excel me-1"></i> Excel
+            </button>
+        </div>
+    </div>
+            <div class="card-body">
+                <div id="resultados" class="result-card p-3">
+                    <p class="text-muted">Agrega ligaciones y haz clic en "Calcular Todas las Ligaciones"</p>
+                </div>
+
+                <!-- Tabla principal de resultados -->
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered table-hover" id="tablaResultados">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Ligación</th>
+                                <th>Gen/Plásmido</th>
+                                <th>Agua (µl)</th>
+                                <th>Buffer T4 (µl)</th>
+                                <th>BSAI (µl)</th>
+                                <th>T4 Ligasa (µl)</th>
+                                <th>Fragmento (µl)</th>
+                                <th>Plásmido 1 (µl)</th>
+                                <th>Plásmido 2 (µl)</th>
+                                <th>Total (µl)</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpoTabla">
+                            <!-- Los resultados se insertarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen de cálculos moleculares -->
+                <div class="mt-4">
+                    <h6>Información de Cálculos por Ligación</h6>
+                    <div id="detallesCalculos" class="row">
+                        <!-- Los detalles se insertarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para una fila de ligación (oculto) -->
+<!-- Template para una fila de ligación (oculto) -->
+<template id="template-ligacion">
+    <div class="card ligacion-card mb-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Ligación <span class="ligacion-numero">1</span></h6>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarLigacion(this)">
+                <i class="fas fa-trash"></i> Eliminar
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">  <!-- CAMBIADO: g-2 -->
+                <div class="col-12 col-md-3">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Ligación:</label>
+                        <select class="form-control tipo-ligacion form-select" name="tipo_ligacion">  <!-- CAMBIADO: form-select -->
+                            <option value="ligacion1">Ligación 1</option>
+                            <option value="ligacion2">Ligación 2</option>
+                            <option value="ligacion3">Ligación 3</option>
+                            <option value="ligacion4">Ligación 4</option>
+                            <option value="ligacion5">Ligación 5</option>
+                            <option value="ligacion6">Ligación 6</option>
+                            <option value="ligacion7">Ligación 7</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-md-9">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Nombre/Descripción:</label>
+                        <input type="text" class="form-control nombre-ligacion" placeholder="Ej: Gen XYZ - Construcción Promotor" value="">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-2">  <!-- CAMBIADO: g-2 -->
+                <div class="col-12 col-md-4">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Conc. Fragmento PCR (ng/µl):</label>
+                        <input type="number" class="form-control conc-fragmento" value="139.7" step="0.1">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Tamaño Fragmento (pb):</label>
+                        <input type="number" class="form-control pb-fragmento" value="164" step="1">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Dilución:</label>
+                        <input type="number" class="form-control dilucion" value="15" step="1">
+                        <div class="form-text">Recomendado: 15</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-2">  <!-- CAMBIADO: g-2 -->
+                <div class="col-12 col-md-6">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Conc. Plásmido 1 (ng/µl):</label>
+                        <input type="number" class="form-control conc-plasmid1" value="146.9" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tamaño Plásmido 1 (pb):</label>
+                        <input type="number" class="form-control pb-plasmid1" value="4968" step="1">
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">  <!-- CAMBIADO: col-12 -->
+                    <div class="mb-3">
+                        <label class="form-label">Conc. Plásmido 2 (ng/µl):</label>
+                        <input type="number" class="form-control conc-plasmid2" value="61.7" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tamaño Plásmido 2 (pb):</label>
+                        <input type="number" class="form-control pb-plasmid2" value="2323" step="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales
+let contadorLigaciones = 0;
+let ligacionesActivas = [];
+let datosLigaciones = {}; // Objeto para guardar datos de cada ligación
+
+// Función para agregar una nueva ligación CON DATOS INDEPENDIENTES
+function agregarLigacion() {
+    contadorLigaciones++;
+    const template = document.getElementById('template-ligacion');
+    const clone = template.content.cloneNode(true);
+    
+    // Actualizar número de ligación
+    clone.querySelector('.ligacion-numero').textContent = contadorLigaciones;
+    
+    // Agregar ID único
+    const ligacionDiv = clone.querySelector('.ligacion-card');
+    const ligacionId = `ligacion-${contadorLigaciones}`;
+    ligacionDiv.id = ligacionId;
+    
+    // Asignar IDs únicos a todos los inputs
+    const inputs = ligacionDiv.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const name = input.className || input.name;
+        input.id = `${ligacionId}-${name}`;
+        input.name = `${ligacionId}-${name}`;
+        
+        // Agregar event listeners para guardar cambios
+        input.addEventListener('change', function() {
+            guardarDatosLigacion(ligacionId);
+        });
+        
+        input.addEventListener('input', function() {
+            guardarDatosLigacion(ligacionId);
+        });
+    });
+    
+    // Inicializar datos para esta ligación (valores por defecto únicos)
+    datosLigaciones[ligacionId] = {
+        tipo_ligacion: 'ligacion1',
+        nombre: `Ligación ${contadorLigaciones}`,
+        conc_fragmento: 139.7,
+        pb_fragmento: 164,
+        conc_plasmid1: 146.9,
+        pb_plasmid1: 4968,
+        conc_plasmid2: 61.7,
+        pb_plasmid2: 2323,
+        dilucion: 15
+    };
+    
+    // Establecer valores iniciales en los inputs
+    actualizarInputsDesdeDatos(ligacionId);
+    
+    // Agregar al contenedor
+    document.getElementById('ligaciones-container').appendChild(clone);
+    
+    // Agregar a la lista de activas
+    ligacionesActivas.push(ligacionId);
+    
+    // Actualizar tabla con fila vacía
+    actualizarTabla();
+    
+    console.log(`Ligación ${ligacionId} agregada con datos:`, datosLigaciones[ligacionId]);
+}
+
+// Función para guardar datos de una ligación específica
+function guardarDatosLigacion(ligacionId) {
+    const ligacionCard = document.getElementById(ligacionId);
+    if (!ligacionCard) return;
+    
+    datosLigaciones[ligacionId] = {
+        tipo_ligacion: ligacionCard.querySelector('.tipo-ligacion').value,
+        nombre: ligacionCard.querySelector('.nombre-ligacion').value || `Ligación ${ligacionId.split('-')[1]}`,
+        conc_fragmento: parseFloat(ligacionCard.querySelector('.conc-fragmento').value) || 139.7,
+        pb_fragmento: parseFloat(ligacionCard.querySelector('.pb-fragmento').value) || 164,
+        conc_plasmid1: parseFloat(ligacionCard.querySelector('.conc-plasmid1').value) || 146.9,
+        pb_plasmid1: parseFloat(ligacionCard.querySelector('.pb-plasmid1').value) || 4968,
+        conc_plasmid2: parseFloat(ligacionCard.querySelector('.conc-plasmid2').value) || 61.7,
+        pb_plasmid2: parseFloat(ligacionCard.querySelector('.pb-plasmid2').value) || 2323,
+        dilucion: parseFloat(ligacionCard.querySelector('.dilucion').value) || 15
+    };
+    
+    console.log(`Datos guardados para ${ligacionId}:`, datosLigaciones[ligacionId]);
+}
+
+// Función para actualizar inputs desde datos guardados
+function actualizarInputsDesdeDatos(ligacionId) {
+    const ligacionCard = document.getElementById(ligacionId);
+    if (!ligacionCard || !datosLigaciones[ligacionId]) return;
+    
+    const datos = datosLigaciones[ligacionId];
+    
+    ligacionCard.querySelector('.tipo-ligacion').value = datos.tipo_ligacion;
+    ligacionCard.querySelector('.nombre-ligacion').value = datos.nombre;
+    ligacionCard.querySelector('.conc-fragmento').value = datos.conc_fragmento;
+    ligacionCard.querySelector('.pb-fragmento').value = datos.pb_fragmento;
+    ligacionCard.querySelector('.conc-plasmid1').value = datos.conc_plasmid1;
+    ligacionCard.querySelector('.pb-plasmid1').value = datos.pb_plasmid1;
+    ligacionCard.querySelector('.conc-plasmid2').value = datos.conc_plasmid2;
+    ligacionCard.querySelector('.pb-plasmid2').value = datos.pb_plasmid2;
+    ligacionCard.querySelector('.dilucion').value = datos.dilucion;
+}
+
+// Función para eliminar una ligación
+function eliminarLigacion(boton) {
+    const ligacionCard = boton.closest('.ligacion-card');
+    const ligacionId = ligacionCard.id;
+    
+    // Confirmar eliminación
+    if (!confirm(`¿Eliminar ${ligacionId}?`)) return;
+    
+    // Eliminar del DOM
+    ligacionCard.remove();
+    
+    // Eliminar de la lista de activas
+    ligacionesActivas = ligacionesActivas.filter(id => id !== ligacionId);
+    
+    // Eliminar datos guardados
+    delete datosLigaciones[ligacionId];
+    
+    // Recalcular si hay ligaciones
+    if (ligacionesActivas.length === 0) {
+        contadorLigaciones = 0;
+        datosLigaciones = {};
+    }
+    
+    // Actualizar tabla
+    actualizarTabla();
+    
+    console.log(`${ligacionId} eliminada. Ligaciones activas:`, ligacionesActivas);
+}
+// FUNCIONES DE EXPORTACIÓN
+function exportarPDF() {
+    if (ligacionesActivas.length === 0 || !datosLigaciones[ligacionesActivas[0]]?.resultados) {
+        alert('Primero calcula las ligaciones para poder exportar.');
+        return;
+    }
+    
+    // Mostrar mensaje de procesamiento
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Generando PDF...</p></div>');
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const fecha = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Título
+    doc.setFontSize(20);
+    doc.setTextColor(40, 167, 69);
+    doc.text('Reporte de Ligaciones Nivel 1', 105, 20, null, null, 'center');
+    
+    // Información general
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${fecha}`, 20, 35);
+    doc.text(`Total de ligaciones: ${ligacionesActivas.length}`, 20, 42);
+    doc.text(`Laboratorio: SDF Lab`, 20, 49);
+    
+    // Tabla de resultados
+    let yPos = 60;
+    
+    // Encabezado de tabla
+    doc.setFillColor(40, 167, 69);
+    doc.rect(20, yPos, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.text('Resumen de Ligaciones', 105, yPos + 7, null, null, 'center');
+    
+    yPos += 15;
+    
+    // Datos de cada ligación
+    ligacionesActivas.forEach((ligacionId, index) => {
+        const datos = datosLigaciones[ligacionId];
+        if (!datos || !datos.resultados) return;
+        
+        // Nueva página si es necesario
+        if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        // Título de la ligación
+        doc.setFontSize(14);
+        doc.setTextColor(33, 37, 41);
+        doc.text(`${index + 1}. ${datos.nombre} (${datos.tipo_ligacion})`, 20, yPos);
+        
+        yPos += 8;
+        
+        // Parámetros usados
+        doc.setFontSize(10);
+        doc.text(`Fragmento: ${datos.conc_fragmento} ng/µl, ${datos.pb_fragmento} pb`, 25, yPos);
+        yPos += 5;
+        doc.text(`Plásmido 1: ${datos.conc_plasmid1} ng/µl, ${datos.pb_plasmid1} pb`, 25, yPos);
+        yPos += 5;
+        doc.text(`Plásmido 2: ${datos.conc_plasmid2} ng/µl, ${datos.pb_plasmid2} pb`, 25, yPos);
+        yPos += 5;
+        doc.text(`Dilución: ${datos.dilucion}x`, 25, yPos);
+        
+        yPos += 8;
+        
+        // Volúmenes calculados
+        doc.setFont(undefined, 'bold');
+        doc.text('Volúmenes (µl):', 25, yPos);
+        doc.setFont(undefined, 'normal');
+        
+        yPos += 6;
+        const vol = datos.resultados;
+        doc.text(`Agua: ${vol.agua}`, 30, yPos);
+        doc.text(`Buffer T4: ${vol.buffer_t4}`, 80, yPos);
+        doc.text(`BSAI: ${vol.bsai}`, 130, yPos);
+        
+        yPos += 5;
+        doc.text(`T4 Ligasa: ${vol.t4_ligasa}`, 30, yPos);
+        doc.text(`Fragmento: ${vol.fragmento_pcr}`, 80, yPos);
+        doc.text(`Plásmido 1: ${vol.plasmid1}`, 130, yPos);
+        
+        yPos += 5;
+        doc.text(`Plásmido 2: ${vol.plasmid2}`, 30, yPos);
+        doc.text(`Total: ${vol.total}`, 80, yPos);
+        
+        yPos += 8;
+        
+        // Información molecular
+        doc.setFont(undefined, 'bold');
+        doc.text('Cálculos Moleculares:', 25, yPos);
+        doc.setFont(undefined, 'normal');
+        
+        yPos += 6;
+        doc.text(`Fragmento PCR: ${vol.fmoles_fragmento} fmol`, 30, yPos);
+        yPos += 5;
+        doc.text(`Fragmento diluido: ${vol.fmoles_diluidos_fragmento} fmol/µl`, 30, yPos);
+        yPos += 5;
+        doc.text(`Plásmido 1: ${vol.fmoles_plasmid1} fmol`, 30, yPos);
+        yPos += 5;
+        doc.text(`Plásmido 2: ${vol.fmoles_plasmid2} fmol`, 30, yPos);
+        
+        yPos += 15;
+        
+        // Línea separadora
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, yPos, 190, yPos);
+        yPos += 5;
+    });
+    
+    // Pie de página
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Página ${i} de ${pageCount}`, 105, 290, null, null, 'center');
+        doc.text('BioCalculadora - Nivel 1 Ligaciones', 105, 295, null, null, 'center');
+    }
+    
+    // Guardar PDF
+    doc.save(`ligaciones_nivel1_${fecha.replace(/ /g, '_')}.pdf`);
+    
+    // Restaurar mensaje
+    setTimeout(() => {
+        $('#resultados').html(`
+            <div class="alert alert-success">
+                <h6><i class="fas fa-file-pdf"></i> PDF generado exitosamente</h6>
+                <p>El archivo se ha descargado automáticamente.</p>
+            </div>
+        `);
+    }, 500);
+}
+
+// Función para exportar a Excel (CSV)
+function exportarExcel() {
+    if (ligacionesActivas.length === 0 || !datosLigaciones[ligacionesActivas[0]]?.resultados) {
+        alert('Primero calcula las ligaciones para poder exportar.');
+        return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    
+    // Encabezados
+    const headers = [
+        "Ligación",
+        "Nombre",
+        "Tipo",
+        "Agua (µl)",
+        "Buffer T4 (µl)",
+        "BSAI (µl)",
+        "T4 Ligasa (µl)",
+        "Fragmento (µl)",
+        "Plásmido 1 (µl)",
+        "Plásmido 2 (µl)",
+        "Total (µl)",
+        "Fragmento (fmol)",
+        "Fragmento diluido (fmol/µl)",
+        "Plásmido 1 (fmol)",
+        "Plásmido 2 (fmol)",
+        "Dilución",
+        "Fecha"
+    ];
+    
+    csvContent += headers.join(",") + "\n";
+    
+    // Datos
+    const fecha = new Date().toLocaleDateString();
+    
+    ligacionesActivas.forEach((ligacionId, index) => {
+        const datos = datosLigaciones[ligacionId];
+        if (!datos || !datos.resultados) return;
+        
+        const vol = datos.resultados;
+        const row = [
+            index + 1,
+            `"${datos.nombre}"`,
+            datos.tipo_ligacion,
+            vol.agua,
+            vol.buffer_t4,
+            vol.bsai,
+            vol.t4_ligasa,
+            vol.fragmento_pcr,
+            vol.plasmid1,
+            vol.plasmid2,
+            vol.total,
+            vol.fmoles_fragmento,
+            vol.fmoles_diluidos_fragmento,
+            vol.fmoles_plasmid1,
+            vol.fmoles_plasmid2,
+            datos.dilucion,
+            fecha
+        ];
+        
+        csvContent += row.join(",") + "\n";
+    });
+    
+    // Descargar
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `ligaciones_${fecha.replace(/\//g, '-')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    $('#resultados').html(`
+        <div class="alert alert-success">
+            <h6><i class="fas fa-file-excel"></i> CSV generado exitosamente</h6>
+            <p>El archivo se ha descargado automáticamente.</p>
+        </div>
+    `);
+}
+
+// Función para tomar captura de pantalla (opcional)
+function capturarPantalla() {
+    html2canvas(document.querySelector("#tablaResultados")).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `ligaciones_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+// Función para calcular todas las ligaciones
+function calcularTodasLigaciones() {
+    const ligaciones = [];
+    
+    if (ligacionesActivas.length === 0) {
+        $('#resultados').html('<div class="alert alert-warning">Agrega al menos una ligación para calcular.</div>');
+        return;
+    }
+    
+    // Mostrar loading
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando todas las ligaciones...</p></div>');
+    $('#cuerpoTabla').html('');
+    $('#detallesCalculos').html('');
+    
+    // Primero, asegurarnos de que todos los datos estén guardados
+    ligacionesActivas.forEach(ligacionId => {
+        guardarDatosLigacion(ligacionId);
+    });
+    
+    // Recolectar datos de todas las ligaciones DESDE EL OBJETO datosLigaciones
+    ligacionesActivas.forEach((ligacionId, index) => {
+        const datos = datosLigaciones[ligacionId];
+        if (datos) {
+            ligaciones.push({
+                tipo_ligacion: datos.tipo_ligacion,
+                nombre: datos.nombre,
+                conc_fragmento: datos.conc_fragmento,
+                pb_fragmento: datos.pb_fragmento,
+                conc_plasmid1: datos.conc_plasmid1,
+                pb_plasmid1: datos.pb_plasmid1,
+                conc_plasmid2: datos.conc_plasmid2,
+                pb_plasmid2: datos.pb_plasmid2,
+                dilucion: datos.dilucion,
+                ligacion_id: ligacionId  // ID único para referencia
+            });
+        }
+    });
+    
+    console.log("Datos enviados al servidor:", ligaciones);
+    
+    // Enviar todas las ligaciones al servidor
+    $.ajax({
+        url: '/api/lv1',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            ligaciones: ligaciones
+        }),
+        success: function(response) {
+            if (response.error) {
+                $('#resultados').html(`<div class="alert alert-danger">${response.error}</div>`);
+                return;
+            }
+            
+            // Mostrar resumen general
+            $('#resultados').html(`
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Cálculo completado</h6>
+                    <p>Se calcularon <strong>${response.ligaciones.length}</strong> ligaciones exitosamente.</p>
+                    <p><strong>Volumen total de todas las ligaciones:</strong> ${response.ligaciones.length * 15} µl</p>
+                </div>
+            `);
+            
+            // Actualizar tabla con resultados
+            let tablaHTML = '';
+            let detallesHTML = '';
+            
+            response.ligaciones.forEach((ligacion, index) => {
+                const ligacionOriginal = ligaciones[index];
+                const ligacionNum = index + 1;
+                const nombre = ligacionOriginal.nombre;
+                const ligacionId = ligacionOriginal.ligacion_id;
+                
+                // Guardar resultados en los datos de la ligación
+                if (datosLigaciones[ligacionId]) {
+                    datosLigaciones[ligacionId].resultados = ligacion;
+                }
+                
+                // Fila de la tabla principal
+                tablaHTML += `
+                <tr id="fila-${ligacionId}">
+                    <td>${ligacionNum}</td>
+                    <td>${ligacion.tipo_ligacion}</td>
+                    <td>${nombre}</td>
+                    <td>${ligacion.agua}</td>
+                    <td>${ligacion.buffer_t4}</td>
+                    <td>${ligacion.bsai}</td>
+                    <td>${ligacion.t4_ligasa}</td>
+                    <td>${ligacion.fragmento_pcr}</td>
+                    <td>${ligacion.plasmid1}</td>
+                    <td>${ligacion.plasmid2}</td>
+                    <td><strong>${ligacion.total}</strong></td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="verDetalles('${ligacionId}')" data-bs-toggle="tooltip" title="Ver detalles">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm ms-1" onclick="recargarLigacion('${ligacionId}')" data-bs-toggle="tooltip" title="Recargar valores">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
+                
+                // Detalles de cálculos moleculares (en cards)
+                detallesHTML += `
+                <div class="col-md-6 col-lg-4 mb-3" id="detalle-${ligacionId}">
+                    <div class="card h-100">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">${nombre}</h6>
+                            <span class="badge bg-primary">${ligacion.tipo_ligacion}</span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Parámetros usados:</strong></p>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <td>Fragmento:</td>
+                                    <td>${ligacionOriginal.conc_fragmento} ng/µl, ${ligacionOriginal.pb_fragmento} pb</td>
+                                </tr>
+                                <tr>
+                                    <td>Plásmido 1:</td>
+                                    <td>${ligacionOriginal.conc_plasmid1} ng/µl, ${ligacionOriginal.pb_plasmid1} pb</td>
+                                </tr>
+                                <tr>
+                                    <td>Plásmido 2:</td>
+                                    <td>${ligacionOriginal.conc_plasmid2} ng/µl, ${ligacionOriginal.pb_plasmid2} pb</td>
+                                </tr>
+                                <tr>
+                                    <td>Dilución:</td>
+                                    <td>${ligacionOriginal.dilucion}x</td>
+                                </tr>
+                            </table>
+                            <hr>
+                            <p><strong>Cálculos moleculares:</strong></p>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Fragmento PCR (fmol):</td>
+                                    <td>${ligacion.fmoles_fragmento}</td>
+                                </tr>
+                                <tr>
+                                    <td>Fragmento diluido (fmol/µl):</td>
+                                    <td>${ligacion.fmoles_diluidos_fragmento}</td>
+                                </tr>
+                                <tr>
+                                    <td>Plásmido 1 (fmol):</td>
+                                    <td>${ligacion.fmoles_plasmid1}</td>
+                                </tr>
+                                <tr>
+                                    <td>Plásmido 2 (fmol):</td>
+                                    <td>${ligacion.fmoles_plasmid2}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+            
+            $('#cuerpoTabla').html(tablaHTML);
+            $('#detallesCalculos').html(detallesHTML);
+            
+            // Inicializar tooltips de Bootstrap
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            
+        },
+        error: function(xhr, status, error) {
+            console.error("Error en la petición:", error, xhr.responseText);
+            $('#resultados').html('<div class="alert alert-danger">Error al calcular las ligaciones. Verifica la consola para detalles.</div>');
+        }
+    });
+}
+
+// Función para ver detalles de una ligación específica
+function verDetalles(ligacionId) {
+    const datos = datosLigaciones[ligacionId];
+    if (!datos || !datos.resultados) {
+        alert(`No hay resultados calculados para ${ligacionId}`);
+        return;
+    }
+    
+    // Resaltar la fila y el detalle correspondiente
+    $('tr').removeClass('table-primary');
+    $(`#fila-${ligacionId}`).addClass('table-primary');
+    
+    $('.card').removeClass('border-primary');
+    $(`#detalle-${ligacionId} .card`).addClass('border-primary border-2');
+    
+    // Scroll al detalle
+    document.getElementById(`detalle-${ligacionId}`).scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+    });
+}
+
+// Función para recargar una ligación con los datos actuales
+function recargarLigacion(ligacionId) {
+    if (datosLigaciones[ligacionId]) {
+        actualizarInputsDesdeDatos(ligacionId);
+        $(`#fila-${ligacionId}`).removeClass('table-primary');
+        alert(`Valores recargados para ${ligacionId}`);
+    }
+}
+
+// Función para actualizar la tabla vacía
+function actualizarTabla() {
+    let tablaHTML = '';
+    
+    ligacionesActivas.forEach((ligacionId, index) => {
+        const datos = datosLigaciones[ligacionId];
+        const nombre = datos ? datos.nombre : `Ligación ${ligacionId.split('-')[1]}`;
+        
+        tablaHTML += `
+        <tr id="fila-${ligacionId}">
+            <td>${index + 1}</td>
+            <td>${datos ? datos.tipo_ligacion : 'Por definir'}</td>
+            <td>${nombre}</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>
+                <button class="btn btn-secondary btn-sm" disabled data-bs-toggle="tooltip" title="Calcular primero">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                <button class="btn btn-outline-warning btn-sm ms-1" onclick="editarLigacion('${ligacionId}')" data-bs-toggle="tooltip" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+    
+    $('#cuerpoTabla').html(tablaHTML);
+    $('[data-bs-toggle="tooltip"]').tooltip();
+}
+
+// Función para editar una ligación (scroll a ella)
+function editarLigacion(ligacionId) {
+    const ligacionCard = document.getElementById(ligacionId);
+    if (ligacionCard) {
+        ligacionCard.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+        
+        // Resaltar la card
+        ligacionCard.classList.add('border-primary', 'border-3');
+        setTimeout(() => {
+            ligacionCard.classList.remove('border-primary', 'border-3');
+        }, 2000);
+    }
+}
+
+// Inicializar con una ligación por defecto
+$(document).ready(function() {
+    agregarLigacion();
+    
+    // También podemos agregar algunas ligaciones de ejemplo
+    setTimeout(() => {
+        // Agregar segunda ligación con valores diferentes
+        agregarLigacion();
+        
+        // Cambiar valores de la segunda ligación
+        setTimeout(() => {
+            const segundaId = 'ligacion-2';
+            if (datosLigaciones[segundaId]) {
+                datosLigaciones[segundaId] = {
+                    ...datosLigaciones[segundaId],
+                    nombre: "Gen ABC - Construcción Promotor",
+                    conc_fragmento: 120.5,
+                    pb_fragmento: 200,
+                    conc_plasmid1: 130.2,
+                    pb_plasmid1: 5000,
+                    conc_plasmid2: 55.3,
+                    pb_plasmid2: 2400,
+                    dilucion: 20
+                };
+                actualizarInputsDesdeDatos(segundaId);
+            }
+        }, 100);
+    }, 500);
+});
+// Detectar dispositivo móvil
+function esMovil() {
+    return window.innerWidth <= 768;
+}
+
+// Ajustar tabla para móviles
+function ajustarTablaParaMovil() {
+    if (!esMovil()) return;
+    
+    // Agregar labels a las celdas
+    $('#cuerpoTabla td').each(function() {
+        const $td = $(this);
+        const header = $('#tablaResultados th').eq($td.index()).text();
+        $td.attr('data-label', header);
+    });
+}
+
+// Inicializar ajustes responsive
+$(document).ready(function() {
+    // Ajustar tabla al cargar
+    ajustarTablaParaMovil();
+    
+    // Reajustar al cambiar tamaño de ventana
+    $(window).resize(function() {
+        ajustarTablaParaMovil();
+    });
+    
+    // Agregar tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip({
+        trigger: 'hover'
+    });
+    
+    // Inicializar con una ligación
+    setTimeout(() => {
+        agregarLigacion();
+    }, 300);
+});
+</script>
+
+<style>
+/* ESTILOS RESPONSIVE PARA MÓVILES */
+.ligacion-card {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.ligacion-card:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.ligacion-card .card-header {
+    background-color: #f8f9fa !important;
+    transition: background-color 0.3s ease;
+    padding: 0.75rem 1rem;
+}
+
+.ligacion-card .card-body {
+    padding: 1rem;
+}
+
+/* TABLA RESPONSIVE */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#tablaResultados {
+    min-width: 1000px; /* Ancho mínimo para tablas grandes */
+}
+
+/* Para móviles, cambiamos la visualización de la tabla */
+@media (max-width: 768px) {
+    .table thead {
+        display: none;
+    }
+    
+    .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border: none;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    
+    .table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #495057;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .table td:last-child {
+        border-bottom: none;
+    }
+    
+    /* Para la tabla principal */
+    #cuerpoTabla tr {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0.75rem;
+    }
+    
+    #cuerpoTabla td {
+        flex: 0 0 50%;
+        box-sizing: border-box;
+        padding: 0.375rem;
+    }
+    
+    /* Ajustes de botones en móviles */
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Cards más compactas en móviles */
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    .col-md-3, .col-md-4, .col-md-6, .col-md-9 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Inputs más grandes en móviles para mejor tacto */
+    .form-control {
+        font-size: 16px; /* Previene zoom en iOS */
+        padding: 0.75rem;
+    }
+    
+    /* Botón de calcular más grande en móviles */
+    .btn-calculate {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.125rem;
+        margin: 1rem 0;
+    }
+    
+    /* Header de cards más compacto */
+    .card-header h5, .card-header h6 {
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+}
+
+/* Para tablets (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    #tablaResultados {
+        min-width: 800px;
+    }
+    
+    .ligacion-card .row > div {
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Estilos generales mejorados */
+.btn-calculate {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+}
+
+.btn-calculate:hover {
+    background: linear-gradient(135deg, #218838, #1ba87e);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    padding: 10px 25px;
+    font-size: 15px;
+    border: none;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+    background: linear-gradient(135deg, #545b62, #343a40);
+    transform: translateY(-2px);
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
+    border-radius: 50rem;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Mejoras de accesibilidad */
+:focus {
+    outline: 3px solid rgba(0, 123, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Loading spinner mejorado */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}
+
+/* Tooltips */
+.tooltip {
+    font-size: 0.875rem;
+}
+
+</style>
+{% endblock %}

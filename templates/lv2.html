@@ -1,0 +1,212 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Nivel 2 (Lv2) - Cálculo de Ensamblaje</h5>
+            </div>
+            <div class="card-body">
+                <form id="lv2Form">
+                    <div class="mb-3">
+                        <label for="num_guias" class="form-label">Número de Guías:</label>
+                        <select class="form-control" id="num_guias">
+                            <option value="1">1 Guía</option>
+                            <option value="2">2 Guías</option>
+                            <option value="3">3 Guías</option>
+                            <option value="4">4 Guías</option>
+                            <option value="5">5 Guías</option>
+                            <option value="6">6 Guías</option>
+                        </select>
+                    </div>
+                    
+                    <h6 class="mt-4">Parámetros de Plásmidos</h6>
+                    <div class="mb-3">
+                        <label for="conc_plasmid1" class="form-label">Concentración Plásmido 1 (ng/µl):</label>
+                        <input type="number" class="form-control" id="conc_plasmid1" value="132.2" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pb_plasmid1" class="form-label">Tamaño Plásmido 1 (pb):</label>
+                        <input type="number" class="form-control" id="pb_plasmid1" value="6234" step="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="conc_plasmid2" class="form-label">Concentración Plásmido 2 (ng/µl):</label>
+                        <input type="number" class="form-control" id="conc_plasmid2" value="137" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pb_plasmid2" class="form-label">Tamaño Plásmido 2 (pb):</label>
+                        <input type="number" class="form-control" id="pb_plasmid2" value="9623" step="1">
+                    </div>
+                    
+                    <h6 class="mt-4">Parámetros de Guía</h6>
+                    <div class="mb-3">
+                        <label for="conc_guia" class="form-label">Concentración Guía (ng/µl):</label>
+                        <input type="number" class="form-control" id="conc_guia" value="180.2" step="0.1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pb_guia" class="form-label">Tamaño Guía (pb):</label>
+                        <input type="number" class="form-control" id="pb_guia" value="4588" step="1">
+                    </div>
+                    
+                    <button type="button" class="btn btn-calculate w-100" onclick="calcularLv2()">Calcular</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Resultados de Ensamblaje</h5>
+            </div>
+            <div class="card-body">
+                <div id="resultados" class="result-card p-3">
+                    <p class="text-muted">Complete el formulario y haga clic en "Calcular"</p>
+                </div>
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Componente</th>
+                                <th>Volumen (µl)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResultados">
+                            <!-- Los resultados se insertarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <h6>Información de Cálculos</h6>
+                    <table class="table table-sm table-bordered">
+                        <tr>
+                            <td>pICH47732 (pmol):</td>
+                            <td id="pmol_plasmid1">-</td>
+                        </tr>
+                        <tr>
+                            <td>pICH47742 (pmol):</td>
+                            <td id="pmol_plasmid2">-</td>
+                        </tr>
+                        <tr>
+                            <td>Guía (pmol):</td>
+                            <td id="pmol_guia">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calcularLv2() {
+    const numGuias = $('#num_guias').val();
+    const concPlasmid1 = $('#conc_plasmid1').val();
+    const pbPlasmid1 = $('#pb_plasmid1').val();
+    const concPlasmid2 = $('#conc_plasmid2').val();
+    const pbPlasmid2 = $('#pb_plasmid2').val();
+    const concGuia = $('#conc_guia').val();
+    const pbGuia = $('#pb_guia').val();
+
+    // Mostrar loading
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+
+    // ¡IMPORTANTE! URL debe ser /api/lv2
+    $.ajax({
+        url: '/api/lv2',  // CORREGIDO: /api/lv2
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            num_guias: parseInt(numGuias),
+            conc_plasmid1: parseFloat(concPlasmid1),
+            pb_plasmid1: parseFloat(pbPlasmid1),
+            conc_plasmid2: parseFloat(concPlasmid2),
+            pb_plasmid2: parseFloat(pbPlasmid2),
+            conc_guia: parseFloat(concGuia),
+            pb_guia: parseFloat(pbGuia)
+        }),
+        success: function(response) {
+            console.log("Respuesta del servidor Lv2:", response); // Para debug
+            
+            if (response.error) {
+                $('#resultados').html(`<div class="alert alert-danger">${response.error}</div>`);
+                return;
+            }
+
+            // Mostrar resumen
+            $('#resultados').html(`
+                <h6>Resumen del Cálculo</h6>
+                <p><strong>Número de guías:</strong> ${response.num_guias}</p>
+                <p><strong>Volumen Total:</strong> ${response.volumen_total} µl</p>
+            `);
+
+            // Actualizar tabla de componentes
+            let tablaHTML = `
+                <tr>
+                    <td>Agua</td>
+                    <td>${response.agua}</td>
+                </tr>
+                <tr>
+                    <td>10x T4 ligasa Buffer</td>
+                    <td>${response.buffer_t4}</td>
+                </tr>
+                <tr>
+                    <td>BPII</td>
+                    <td>${response.bpii}</td>
+                </tr>
+                <tr>
+                    <td>T4 ligasa</td>
+                    <td>${response.t4_ligasa}</td>
+                </tr>
+                <tr>
+                    <td>pICH47732</td>
+                    <td>${response.plasmid1}</td>
+                </tr>
+                <tr>
+                    <td>pICH47742</td>
+                    <td>${response.plasmid2}</td>
+                </tr>
+            `;
+            
+            // Agregar guías dinámicamente
+            for (let i = 1; i <= response.num_guias; i++) {
+                tablaHTML += `
+                <tr>
+                    <td>Guía ${i}</td>
+                    <td>${response.vol_guia || response[`guia${i}_vol`] || '0.00'}</td>
+                </tr>
+                `;
+            }
+            
+            tablaHTML += `
+                <tr class="table-active">
+                    <td><strong>TOTAL</strong></td>
+                    <td><strong>${response.volumen_total}</strong></td>
+                </tr>
+            `;
+            
+            $('#tablaResultados').html(tablaHTML);
+
+            // Actualizar información de cálculos
+            $('#pmol_plasmid1').text(response.pmoles_plasmid1);
+            $('#pmol_plasmid2').text(response.pmoles_plasmid2);
+            $('#pmol_guia').text(response.pmoles_guia);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error en la petición Lv2:", error, xhr.responseText);
+            $('#resultados').html('<div class="alert alert-danger">Error al calcular. Verifica la consola para detalles.</div>');
+        }
+    });
+}
+
+// Calcular al cargar la página
+$(document).ready(function() {
+    calcularLv2();
+});
+</script>
+{% endblock %}
