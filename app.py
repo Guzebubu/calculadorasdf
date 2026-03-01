@@ -173,72 +173,82 @@ def calcular_pcr_dream_taq():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 400
     
-# NIVEL 1 - PARA MÚLTIPLES LIGACIONES INDEPENDIENTES
+# ==========================================
+# RUTAS PARA NIVEL 1 (LV1) - LIGACIONES
+# ==========================================
 @app.route('/api/lv1', methods=['POST'])
 def calcular_lv1():
     try:
         data = request.get_json()
+        ligaciones_input = data.get('ligaciones', [])
         
-        # Ahora podemos recibir múltiples ligaciones
-        ligaciones = data.get('ligaciones', [])
-        resultados = []
+        resultados_ligaciones = []
         
-        for ligacion_data in ligaciones:
-            # Parámetros de entrada para cada ligación
-            tipo_ligacion = ligacion_data.get('tipo_ligacion', 'ligacion1')
-            conc_fragmento = float(ligacion_data.get('conc_fragmento', 139.7))
-            pb_fragmento = float(ligacion_data.get('pb_fragmento', 164))
-            conc_plasmid1 = float(ligacion_data.get('conc_plasmid1', 146.9))
-            pb_plasmid1 = float(ligacion_data.get('pb_plasmid1', 4968))
-            conc_plasmid2 = float(ligacion_data.get('conc_plasmid2', 61.7))
-            pb_plasmid2 = float(ligacion_data.get('pb_plasmid2', 2323))
-            dilucion = float(ligacion_data.get('dilucion', 15))
-            
-            # Parámetros fijos
-            volumen_total = 15
-            buffer_t4 = 1.5
-            bsai = 0.8
-            t4_ligasa = 0.4
-            
-            # Cálculos
-            fmoles_fragmento = (conc_fragmento * 1000000) / (660 * pb_fragmento) * 1000
-            fmoles_plasmid1 = (conc_plasmid1 * 1000000) / (660 * pb_plasmid1) * 1000
-            fmoles_plasmid2 = (conc_plasmid2 * 1000000) / (660 * pb_plasmid2) * 1000
-            
-            # Fragmento después de dilución (en fmol/µl)
-            fmoles_diluidos_fragmento = fmoles_fragmento / dilucion
-            
-            # Cálculo de volúmenes (corregido)
-            vol_fragmento = 40 / (fmoles_diluidos_fragmento / 1000) if fmoles_diluidos_fragmento > 0 else 0
-            vol_plasmid1 = 40 / (fmoles_plasmid1 / 1000) if fmoles_plasmid1 > 0 else 0
-            vol_plasmid2 = 40 / (fmoles_plasmid2 / 1000) if fmoles_plasmid2 > 0 else 0
-            
-            # Calcular agua
-            suma_componentes = buffer_t4 + bsai + t4_ligasa + vol_fragmento + vol_plasmid1 + vol_plasmid2
-            agua = max(0, volumen_total - suma_componentes)
-            
-            resultados.append({
-                'tipo_ligacion': tipo_ligacion,
-                'agua': round(agua, 3),
-                'buffer_t4': round(buffer_t4, 3),
-                'bsai': round(bsai, 3),
-                't4_ligasa': round(t4_ligasa, 3),
-                'fragmento_pcr': round(vol_fragmento, 3),
-                'plasmid1': round(vol_plasmid1, 3),
-                'plasmid2': round(vol_plasmid2, 3),
-                'total': round(volumen_total, 3),
-                'fmoles_fragmento': round(fmoles_fragmento, 3),
-                'fmoles_diluidos_fragmento': round(fmoles_diluidos_fragmento, 3),
-                'fmoles_plasmid1': round(fmoles_plasmid1, 3),
-                'fmoles_plasmid2': round(fmoles_plasmid2, 3),
-                'dilucion': dilucion
-            })
+        # Parámetros fijos por reacción (Asumiendo 15 µl finales)
+        VOL_TOTAL = 15.0
+        VOL_BUFFER_T4 = 1.5   # 10X Buffer (1.5 µl en 15 µl)
+        VOL_BSAI = 1.0        # Enzima de restricción
+        VOL_T4_LIGASA = 0.5   # Ligasa
         
-        return jsonify({'ligaciones': resultados})
-    except Exception as e:
-        print(f"Error en cálculo de LV1: {str(e)}")
-        return jsonify({'error': str(e)}), 400
+        # FMOLES OBJETIVO PARA GOLDEN GATE
+        FMOLES_OBJETIVO = 40.0
+        
+        for ligacion in ligaciones_input:
+            # 1. Extraer datos (con valores por defecto por si acaso)
+            c_frag = float(ligacion.get('conc_fragmento', 0))
+            pb_frag = float(ligacion.get('pb_fragmento', 1))
+            dilucion = float(ligacion.get('dilucion', 1))
+            
+            c_p1 = float(ligacion.get('conc_plasmid1', 0))
+            pb_p1 = float(ligacion.get('pb_plasmid1', 1))
+            
+            c_p2 = float(ligacion.get('conc_plasmid2', 0))
+            pb_p2 = float(ligacion.get('pb_plasmid2', 1))
+            
+            # 2. Calcular fmol/µl reales para cada componente
+            fmol_ul_frag_puro = (c_frag * 1000000) / (pb_frag * 660) if pb_frag > 0 else 0
+            fmol_ul_frag_diluido = fmol_ul_frag_puro / dilucion if dilucion > 0 else fmol_ul_frag_puro
+            
+            fmol_ul_p1 = (c_p1 * 1000000) / (pb_p1 * 660) if pb_p1 > 0 else 0
+            fmol_ul_p2 = (c_p2 * 1000000) / (pb_p2 * 660) if pb_p2 > 0 else 0
+            
+            # 3. Calcular qué volumen (µl) necesito pipetear para obtener 40 fmoles
+            vol_frag = FMOLES_OBJETIVO / fmol_ul_frag_diluido if fmol_ul_frag_diluido > 0 else 0
+            vol_p1 = FMOLES_OBJETIVO / fmol_ul_p1 if fmol_ul_p1 > 0 else 0
+            vol_p2 = FMOLES_OBJETIVO / fmol_ul_p2 if fmol_ul_p2 > 0 else 0
+            
+            # 4. Calcular el Agua para aforar a 15 µl
+            vol_componentes = VOL_BUFFER_T4 + VOL_BSAI + VOL_T4_LIGASA + vol_frag + vol_p1 + vol_p2
+            agua = VOL_TOTAL - vol_componentes
+            
+            # Si el agua da negativo, significa que los componentes están muy diluidos y rebasan los 15ul
+            agua_final = max(0, agua) 
+            
+            # 5. Guardar el resultado formateado a 2 decimales
+            resultado = {
+                'tipo_ligacion': ligacion.get('tipo_ligacion', 'N/A'),
+                'agua': round(agua_final, 2),
+                'buffer_t4': VOL_BUFFER_T4,
+                'bsai': VOL_BSAI,
+                't4_ligasa': VOL_T4_LIGASA,
+                'fragmento_pcr': round(vol_frag, 2),
+                'plasmid1': round(vol_p1, 2),
+                'plasmid2': round(vol_p2, 2),
+                'total': VOL_TOTAL,
+                
+                # Datos moleculares para mostrar en los detalles (puramente informativos)
+                'fmoles_fragmento': FMOLES_OBJETIVO,
+                'fmoles_diluidos_fragmento': round(fmol_ul_frag_diluido, 2),
+                'fmoles_plasmid1': FMOLES_OBJETIVO,
+                'fmoles_plasmid2': FMOLES_OBJETIVO
+            }
+            
+            resultados_ligaciones.append(resultado)
 
+        return jsonify({'ligaciones': resultados_ligaciones})
+
+    except Exception as e:
+        return jsonify({'error': f"Error en cálculo Lv1: {str(e)}"}), 400
 # NIVEL 2
 @app.route('/api/lv2', methods=['POST'])
 def calcular_lv2():
@@ -369,6 +379,152 @@ def calcular_medios():
         return jsonify(resultados)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+    
+# ==========================================
+# RUTAS PARA MOLARIDAD
+# ==========================================
+@app.route('/molaridad')
+def molaridad_page():
+    return render_template('molaridad.html')
+
+@app.route('/api/molaridad', methods=['POST'])
+def calcular_molaridad():
+    try:
+        data = request.get_json()
+        tipo_calculo = data.get('tipo_calculo') # 'gramos' o 'molaridad'
+        peso_molecular = float(data.get('peso_molecular', 0))
+        volumen_ml = float(data.get('volumen_ml', 0))
+        
+        # Convertir ml a Litros para la fórmula (M = mol/L)
+        volumen_l = volumen_ml / 1000.0
+        
+        resultados = {
+            'tipo_calculo': tipo_calculo,
+            'peso_molecular': peso_molecular,
+            'volumen_ml': volumen_ml,
+            'volumen_l': volumen_l
+        }
+        
+        if tipo_calculo == 'gramos':
+            # Escenario A: Calcular Gramos a pesar
+            concentracion_m = float(data.get('concentracion_m', 0))
+            # Fórmula: Gramos = Molaridad * Volumen(L) * Peso Molecular
+            gramos = concentracion_m * volumen_l * peso_molecular
+            
+            resultados['concentracion_m'] = concentracion_m
+            resultados['gramos_resultado'] = round(gramos, 4)
+            
+        elif tipo_calculo == 'molaridad':
+            # Escenario B: Calcular Molaridad resultante
+            gramos_pesados = float(data.get('gramos_pesados', 0))
+            # Fórmula: Molaridad = Gramos / (Peso Molecular * Volumen(L))
+            molaridad = gramos_pesados / (peso_molecular * volumen_l) if (peso_molecular * volumen_l) > 0 else 0
+            
+            resultados['gramos_pesados'] = gramos_pesados
+            resultados['molaridad_resultado'] = round(molaridad, 4)
+            
+        return jsonify(resultados)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+    
+    # ==========================================
+# RUTAS PARA CÁLCULOS GENERALES
+# ==========================================
+@app.route('/calculos_generales')
+def calculos_generales_page():
+    return render_template('calculos_generales.html')
+
+@app.route('/api/diluciones', methods=['POST'])
+def calc_diluciones():
+    try:
+        data = request.get_json()
+        c1 = float(data.get('c1', 0))
+        c2 = float(data.get('c2', 0))
+        v2 = float(data.get('v2', 0))
+        
+        if c1 == 0:
+            return jsonify({'error': 'La concentración inicial (C1) no puede ser 0.'}), 400
+        if c2 > c1:
+            return jsonify({'error': 'La concentración final (C2) no puede ser mayor que la inicial (C1).'}), 400
+            
+        # Fórmula C1V1 = C2V2 -> V1 = (C2 * V2) / C1
+        v1 = (c2 * v2) / c1
+        solvente = v2 - v1
+        
+        return jsonify({
+            'v1': round(v1, 4),
+            'solvente': round(solvente, 4),
+            'v2': v2
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/primers', methods=['POST'])
+def calc_primers():
+    try:
+        data = request.get_json()
+        nmol = float(data.get('nmol', 0))
+        conc_final = float(data.get('conc_final', 100)) # Por defecto 100 uM
+        
+        if conc_final == 0:
+            return jsonify({'error': 'La concentración final no puede ser 0.'}), 400
+            
+        # Fórmula: µl de TE = (nmol * 1000) / Concentración final (µM)
+        vol_ul = (nmol * 1000) / conc_final
+        
+        return jsonify({
+            'volumen_ul': round(vol_ul, 2),
+            'nmol': nmol,
+            'conc_final': conc_final
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/digestion', methods=['POST'])
+def calc_digestion():
+    try:
+        data = request.get_json()
+        reacciones = float(data.get('reacciones', 1))
+        extra = float(data.get('extra', 10)) / 100.0
+        
+        vol_total = float(data.get('vol_total', 20))
+        vol_adn = float(data.get('vol_adn', 1))
+        vol_enzima1 = float(data.get('vol_enzima1', 0.5))
+        vol_enzima2 = float(data.get('vol_enzima2', 0))
+        
+        # Buffer es típicamente el 10% del volumen total (10X)
+        vol_buffer = vol_total * 0.10
+        
+        vol_agua = vol_total - (vol_adn + vol_enzima1 + vol_enzima2 + vol_buffer)
+        
+        if vol_agua < 0:
+            return jsonify({'error': 'El volumen de los componentes supera el volumen total de la reacción.'}), 400
+            
+        factor = reacciones * (1 + extra)
+        
+        return jsonify({
+            'agua_rx': round(vol_agua, 2),
+            'agua_mm': round(vol_agua * factor, 2),
+            'buffer_rx': round(vol_buffer, 2),
+            'buffer_mm': round(vol_buffer * factor, 2),
+            'enzima1_rx': round(vol_enzima1, 2),
+            'enzima1_mm': round(vol_enzima1 * factor, 2),
+            'enzima2_rx': round(vol_enzima2, 2),
+            'enzima2_mm': round(vol_enzima2 * factor, 2),
+            'adn_rx': round(vol_adn, 2),
+            'total_rx': round(vol_total, 2),
+            'reacciones': reacciones,
+            'extra': data.get('extra', 10)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+# ==========================================
+# RUTAS PARA RECETAS DE LABORATORIO
+# ==========================================
+@app.route('/recetas')
+def recetas_page():
+    return render_template('recetas.html')
 
 # ============================
 # EJECUCIÓN

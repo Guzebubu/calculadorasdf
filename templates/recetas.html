@@ -1,0 +1,384 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-md-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Recetario de Biología Molecular</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3 mb-3">
+                        <h6 class="text-muted fw-bold mb-3"><i class="bi bi-list-ul"></i> Selecciona una Receta</h6>
+                        <div class="list-group shadow-sm" id="lista-recetas">
+                            </div>
+                    </div>
+
+                    <div class="col-md-8 col-lg-9">
+                        <div id="receta-placeholder" class="h-100 d-flex flex-column justify-content-center align-items-center text-center p-5 bg-light rounded border">
+                            <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted mt-3">Selecciona una receta a la izquierda</h5>
+                        </div>
+
+                        <div id="receta-content" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h4 class="text-primary fw-bold mb-0" id="receta-titulo">Título</h4>
+                                <div class="btn-group shadow-sm">
+                                    <button class="btn btn-danger btn-sm text-white" onclick="exportarPDFReceta()"><i class="bi bi-file-pdf"></i> PDF</button>
+                                    <button class="btn btn-success btn-sm text-white" onclick="exportarExcelReceta()"><i class="bi bi-file-excel"></i> Excel</button>
+                                </div>
+                            </div>
+
+                            <p class="text-muted" id="receta-desc">Descripción</p>
+                            
+                            <div class="alert alert-info py-2 d-flex align-items-center">
+                                <i class="bi bi-droplet-half fs-4 me-3"></i>
+                                <div>
+                                    <label class="fw-bold mb-0">¿Cuánto volumen deseas preparar?</label>
+                                    <div class="input-group input-group-sm mt-1" style="max-width: 250px;">
+                                        <input type="number" class="form-control fw-bold text-center" id="volumen-input" value="1000" step="10">
+                                        <span class="input-group-text bg-white" id="unidad-volumen">ml</span>
+                                        <button class="btn btn-primary" onclick="recalcularReceta()"><i class="bi bi-calculator"></i> Recalcular</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-dark mt-4"><i class="bi bi-basket"></i> Ingredientes</h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle text-center">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-start">Reactivo</th>
+                                            <th>Cantidad</th>
+                                            <th>Unidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-ingredientes">
+                                        </tbody>
+                                </table>
+                            </div>
+
+                            <div class="alert alert-warning py-2 mt-2" id="receta-ph" style="display: none;">
+                                <strong><i class="bi bi-activity"></i> Ajuste de pH:</strong> <span id="ph-texto"></span>
+                            </div>
+
+                            <h6 class="fw-bold text-dark mt-4"><i class="bi bi-list-check"></i> Instrucciones de Preparación</h6>
+                            <ul class="list-group list-group-numbered list-group-flush mb-3 border" id="lista-instrucciones">
+                                </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ==========================================
+// BASE DE DATOS DE RECETAS
+// ==========================================
+const baseRecetas = {
+    "tae50x": {
+        id: "tae50x",
+        nombre: "Buffer TAE 50X",
+        descripcion: "Buffer estándar para electroforesis de ácidos nucleicos en geles de agarosa.",
+        volumen_base: 1000, 
+        unidad_base: "ml",
+        ph: "Aprox. 8.5 (No requiere ajuste de pH si los reactivos están bien pesados).",
+        ingredientes: [
+            { nombre: "Tris Base", cantidad: 242.0, unidad: "g" },
+            { nombre: "Ácido Acético Glacial", cantidad: 57.1, unidad: "ml" },
+            { nombre: "EDTA 0.5M (pH 8.0)", cantidad: 100.0, unidad: "ml" }
+        ],
+        instrucciones: [
+            "Agregar aproximadamente 600 ml de agua destilada (ddH₂O) a un vaso de precipitados.",
+            "Añadir el Tris Base y agitar hasta disolver completamente.",
+            "Agregar el Ácido Acético Glacial y la solución de EDTA 0.5M.",
+            "Aforar (llevar al volumen final) con ddH₂O.",
+            "Almacenar a temperatura ambiente."
+        ]
+    },
+    "tbe10x": {
+        id: "tbe10x",
+        nombre: "Buffer TBE 10X",
+        descripcion: "Buffer preferido para fragmentos pequeños de ADN (<1kb) y alta resolución.",
+        volumen_base: 1000, 
+        unidad_base: "ml",
+        ph: "Aprox. 8.3 (No requiere ajuste de pH).",
+        ingredientes: [
+            { nombre: "Tris Base", cantidad: 108.0, unidad: "g" },
+            { nombre: "Ácido Bórico", cantidad: 55.0, unidad: "g" },
+            { nombre: "EDTA 0.5M (pH 8.0)", cantidad: 40.0, unidad: "ml" }
+        ],
+        instrucciones: [
+            "Agregar aproximadamente 700 ml de agua destilada (ddH₂O) a un vaso de precipitados.",
+            "Añadir el Tris Base y el Ácido Bórico. Agitar magnéticamente hasta disolver.",
+            "Agregar la solución de EDTA 0.5M.",
+            "Aforar al volumen final con ddH₂O.",
+            "Nota: Si se forma precipitado con el tiempo, descartar o filtrar."
+        ]
+    },
+    "ctab": {
+        id: "ctab",
+        nombre: "Buffer CTAB 2% (Extracción)",
+        descripcion: "Clásico buffer de lisis para extracción de ADN de plantas y hongos ricos en polisacáridos.",
+        volumen_base: 100, 
+        unidad_base: "ml",
+        ph: "No requiere ajuste extra si el Tris y EDTA usados ya tienen pH 8.0.",
+        ingredientes: [
+            { nombre: "CTAB (Bromuro de hexadeciltrimetilamonio)", cantidad: 2.0, unidad: "g" },
+            { nombre: "NaCl", cantidad: 8.18, unidad: "g" },
+            { nombre: "Tris-HCl 1M (pH 8.0)", cantidad: 10.0, unidad: "ml" },
+            { nombre: "EDTA 0.5M (pH 8.0)", cantidad: 4.0, unidad: "ml" }
+        ],
+        instrucciones: [
+            "Calentar ~60 ml de ddH₂O a 65°C para facilitar la disolución.",
+            "Disolver primero el NaCl. Luego agregar el Tris y el EDTA.",
+            "Añadir el CTAB lentamente mientras se agita (puede tardar en disolverse, mantener en calor).",
+            "Aforar a volumen final con ddH₂O.",
+            "Opcional (justo antes de usar): Agregar β-mercaptoetanol al 0.2% - 1% bajo campana."
+        ]
+    },
+    "edta": {
+        id: "edta",
+        nombre: "EDTA 0.5M (pH 8.0)",
+        descripcion: "Agente quelante universal usado en casi todos los buffers moleculares.",
+        volumen_base: 1000, 
+        unidad_base: "ml",
+        ph: "¡CRÍTICO! Usar pastillas de NaOH. El EDTA NO se disolverá hasta que el pH alcance ~8.0.",
+        ingredientes: [
+            { nombre: "EDTA-Na₂·2H₂O (Sal disódica dihidratada)", cantidad: 186.1, unidad: "g" },
+            { nombre: "Pastillas de NaOH", cantidad: 20.0, unidad: "g (aprox)" }
+        ],
+        instrucciones: [
+            "Agregar el EDTA a ~800 ml de ddH₂O bajo agitación magnética vigorosa.",
+            "La solución estará turbia. Comenzar a agregar pastillas de NaOH una por una.",
+            "Monitorear con un potenciómetro. Cuando el pH llegue a ~8.0, la solución se volverá transparente.",
+            "Aforar al volumen final con ddH₂O.",
+            "Esterilizar en autoclave."
+        ]
+    },
+    "te": {
+        id: "te",
+        nombre: "Buffer TE 1X",
+        descripcion: "Buffer estándar para resuspensión y almacenamiento a largo plazo de ADN/ARN.",
+        volumen_base: 100, 
+        unidad_base: "ml",
+        ph: "Aprox. 8.0.",
+        ingredientes: [
+            { nombre: "Tris-HCl 1M (pH 8.0)", cantidad: 1.0, unidad: "ml" },
+            { nombre: "EDTA 0.5M (pH 8.0)", cantidad: 0.2, unidad: "ml" }
+        ],
+        instrucciones: [
+            "Mezclar el Tris y el EDTA en ~80 ml de agua destilada (ddH₂O).",
+            "Aforar al volumen final con ddH₂O.",
+            "Esterilizar en autoclave o por filtración (0.22 µm) para prevenir contaminación por nucleasas."
+        ]
+    }
+};
+
+let recetaActual = null;
+
+// ==========================================
+// LÓGICA DE INTERFAZ
+// ==========================================
+$(document).ready(function() {
+    // Dibujar el menú lateral con una clase extra (btn-receta) para controlarlos fácil
+    let menuHTML = '';
+    for (const key in baseRecetas) {
+        menuHTML += `<button type="button" class="list-group-item list-group-item-action fw-bold text-primary btn-receta" onclick="cargarReceta('${key}', this)">
+            <i class="bi bi-chevron-right me-1 small"></i> ${baseRecetas[key].nombre}
+        </button>`;
+    }
+    $('#lista-recetas').html(menuHTML);
+    
+    // Recalcular al dar Enter en la caja de volumen
+    $('#volumen-input').on('keypress', function(e) {
+        if (e.which == 13) recalcularReceta();
+    });
+});
+
+function cargarReceta(idReceta, botonClickeado) {
+    recetaActual = baseRecetas[idReceta];
+    
+    // Efectos visuales del menú (Apagar todos y encender el clickeado)
+    $('.btn-receta').removeClass('active text-white').addClass('text-primary');
+    $(botonClickeado).addClass('active text-white').removeClass('text-primary');
+
+    // SOLUCIÓN AL BUG DEL ESPACIO BLANCO: Quitamos d-flex antes de ocultar
+    $('#receta-placeholder').removeClass('d-flex').hide();
+    $('#receta-content').fadeIn();
+
+    // Rellenar cabeceras
+    $('#receta-titulo').text(recetaActual.nombre);
+    $('#receta-desc').text(recetaActual.descripcion);
+    $('#volumen-input').val(recetaActual.volumen_base);
+    $('#unidad-volumen').text(recetaActual.unidad_base);
+
+    // Rellenar pH si tiene advertencias
+    if (recetaActual.ph) {
+        $('#ph-texto').text(recetaActual.ph);
+        $('#receta-ph').show();
+    } else {
+        $('#receta-ph').hide();
+    }
+
+    // Rellenar instrucciones
+    let instHTML = '';
+    recetaActual.instrucciones.forEach(inst => {
+        instHTML += `<li class="list-group-item bg-light border-0 py-1"><i class="bi bi-arrow-right-short text-primary"></i> ${inst}</li>`;
+    });
+    $('#lista-instrucciones').html(instHTML);
+
+    // Calcular ingredientes base
+    recalcularReceta();
+}
+
+function recalcularReceta() {
+    if (!recetaActual) return;
+    
+    const volDeseado = parseFloat($('#volumen-input').val());
+    if (volDeseado <= 0 || isNaN(volDeseado)) {
+        alert("Ingresa un volumen válido mayor a 0.");
+        $('#volumen-input').val(recetaActual.volumen_base);
+        return;
+    }
+
+    const factor = volDeseado / recetaActual.volumen_base;
+    let tablaHTML = '';
+
+    recetaActual.ingredientes.forEach(ing => {
+        const nuevaCant = (ing.cantidad * factor).toFixed(2);
+        const cantidadLimpia = parseFloat(nuevaCant) == parseInt(nuevaCant) ? parseInt(nuevaCant) : nuevaCant;
+        
+        tablaHTML += `
+            <tr>
+                <td class="text-start fw-bold text-secondary">${ing.nombre}</td>
+                <td class="text-primary fw-bold fs-5">${cantidadLimpia}</td>
+                <td class="text-muted">${ing.unidad}</td>
+            </tr>
+        `;
+    });
+
+    $('#tabla-ingredientes').html(tablaHTML);
+}
+
+// ==========================================
+// EXPORTACIÓN A PDF Y EXCEL
+// ==========================================
+function exportarPDFReceta() {
+    if (!recetaActual) return;
+    const volActual = $('#volumen-input').val();
+    const factor = volActual / recetaActual.volumen_base;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    
+    doc.setFontSize(20);
+    doc.setTextColor(13, 110, 253);
+    doc.text(`Receta: ${recetaActual.nombre}`, 105, 20, null, null, 'center');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Preparación para: ${volActual} ${recetaActual.unidad_base}`, 105, 28, null, null, 'center');
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 20, 40);
+    
+    // Ingredientes Table
+    doc.setFontSize(14);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Ingredientes Necesarios:', 20, 52);
+    
+    let bodyData = recetaActual.ingredientes.map(ing => {
+        let calc = (ing.cantidad * factor).toFixed(2);
+        calc = parseFloat(calc) == parseInt(calc) ? parseInt(calc) : calc;
+        return [ing.nombre, calc, ing.unidad];
+    });
+
+    doc.autoTable({
+        startY: 56,
+        head: [['Reactivo', 'Cantidad', 'Unidad']],
+        body: bodyData,
+        theme: 'grid',
+        headStyles: { fillColor: [13, 110, 253] }
+    });
+    
+    let yPos = doc.lastAutoTable.finalY + 15;
+    
+    // Notas (pH)
+    if (recetaActual.ph) {
+        doc.setFontSize(12);
+        doc.setTextColor(214, 51, 132); 
+        doc.setFont(undefined, 'bold');
+        doc.text('Ajuste de pH:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(11);
+        
+        let splitTitle = doc.splitTextToSize(recetaActual.ph, 170);
+        doc.text(splitTitle, 20, yPos + 6);
+        yPos += (splitTitle.length * 6) + 10;
+    }
+
+    // Instrucciones
+    doc.setFontSize(14);
+    doc.setTextColor(33, 37, 41);
+    doc.setFont(undefined, 'bold');
+    doc.text('Procedimiento:', 20, yPos);
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(50, 50, 50);
+    yPos += 8;
+    
+    recetaActual.instrucciones.forEach((inst, index) => {
+        let text = `${index + 1}. ${inst}`;
+        let splitText = doc.splitTextToSize(text, 170);
+        doc.text(splitText, 20, yPos);
+        yPos += (splitText.length * 6) + 2;
+    });
+
+    doc.save(`Receta_${recetaActual.id}_${volActual}${recetaActual.unidad_base}.pdf`);
+}
+
+function exportarExcelReceta() {
+    if (!recetaActual) return;
+    const volActual = $('#volumen-input').val();
+    const factor = volActual / recetaActual.volumen_base;
+    
+    let csvRows = [];
+    csvRows.push([`RECETA: ${recetaActual.nombre}`, '']);
+    csvRows.push(['Volumen a Preparar', `${volActual} ${recetaActual.unidad_base}`]);
+    csvRows.push(['Fecha', new Date().toLocaleDateString('es-ES')]);
+    csvRows.push([]);
+    
+    csvRows.push(['REACTIVO', 'CANTIDAD', 'UNIDAD']);
+    recetaActual.ingredientes.forEach(ing => {
+        let calc = (ing.cantidad * factor).toFixed(2);
+        csvRows.push([ing.nombre, calc, ing.unidad]);
+    });
+    
+    csvRows.push([]);
+    if (recetaActual.ph) {
+        csvRows.push(['NOTAS DE pH:', recetaActual.ph, '']);
+        csvRows.push([]);
+    }
+
+    csvRows.push(['PROCEDIMIENTO:', '', '']);
+    recetaActual.instrucciones.forEach((inst, idx) => {
+        csvRows.push([`Paso ${idx + 1}`, `"${inst}"`, '']);
+    });
+    
+    let csvContent = csvRows.map(e => e.join(",")).join("\n");
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Receta_${recetaActual.id}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}

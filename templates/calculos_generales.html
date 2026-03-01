@@ -1,0 +1,465 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-tools"></i> Cálculos Generales de Laboratorio</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="nav nav-tabs bg-light pt-2 px-2" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="dilucion-tab" data-bs-toggle="tab" data-bs-target="#dilucion" type="button" role="tab">
+                            <i class="bi bi-droplet"></i> C₁V₁ = C₂V₂
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="primers-tab" data-bs-toggle="tab" data-bs-target="#primers" type="button" role="tab">
+                            <i class="bi bi-usb-symbol"></i> Resuspensión Oligos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="digestion-tab" data-bs-toggle="tab" data-bs-target="#digestion" type="button" role="tab">
+                            <i class="bi bi-scissors"></i> Digestión (Master Mix)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4" id="myTabContent">
+                    
+                    <div class="tab-pane fade show active" id="dilucion" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary"><i class="bi bi-info-circle"></i> Calculadora Universal de Diluciones</h6>
+                                <p class="text-muted small">Asegúrate de usar las mismas unidades de concentración (ej. mg/ml en ambas).</p>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <label class="form-label small">Concentración Inicial (C₁):</label>
+                                        <input type="number" class="form-control" id="c1" placeholder="Ej. 100">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Concentración Final (C₂):</label>
+                                        <input type="number" class="form-control" id="c2" placeholder="Ej. 50">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <label class="form-label small">Volumen Final Deseado (V₂):</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="v2" placeholder="Ej. 10">
+                                            <select class="form-select" id="unidad_v" style="max-width: 100px;">
+                                                <option value="ml">ml</option>
+                                                <option value="µl">µl</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-calculate w-100" onclick="calcDilucion()"><i class="bi bi-calculator"></i> Calcular</button>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <div class="d-flex justify-content-end mb-2" id="btn-export-dilucion" style="display: none !important;">
+                                    <div class="btn-group">
+                                        <button class="btn btn-danger btn-sm text-white" onclick="exportarPDFDilucion()"><i class="bi bi-file-pdf"></i> PDF</button>
+                                        <button class="btn btn-success btn-sm text-white" onclick="exportarExcelDilucion()"><i class="bi bi-file-excel"></i> Excel</button>
+                                    </div>
+                                </div>
+                                <div id="res_dilucion" class="alert alert-secondary h-75 d-flex flex-column justify-content-center align-items-center text-center">
+                                    <p class="text-muted mb-0">Los resultados aparecerán aquí</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="primers" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary"><i class="bi bi-info-circle"></i> Resuspensión de Primers liofilizados</h6>
+                                <div class="mb-3">
+                                    <label class="form-label small">Cantidad en el tubo (nmoles):</label>
+                                    <input type="number" class="form-control" id="nmol" placeholder="Revisa la hoja del fabricante (Ej. 34.5)">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small">Concentración Stock Deseada (µM):</label>
+                                    <input type="number" class="form-control" id="conc_oligo" value="100" step="10">
+                                    <div class="form-text">Generalmente se preparan a 100 µM.</div>
+                                </div>
+                                <button class="btn btn-calculate w-100" onclick="calcPrimers()"><i class="bi bi-calculator"></i> Calcular</button>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <div class="d-flex justify-content-end mb-2" id="btn-export-primers" style="display: none !important;">
+                                    <div class="btn-group">
+                                        <button class="btn btn-danger btn-sm text-white" onclick="exportarPDFPrimers()"><i class="bi bi-file-pdf"></i> PDF</button>
+                                        <button class="btn btn-success btn-sm text-white" onclick="exportarExcelPrimers()"><i class="bi bi-file-excel"></i> Excel</button>
+                                    </div>
+                                </div>
+                                <div id="res_primers" class="alert alert-secondary h-75 d-flex flex-column justify-content-center align-items-center text-center">
+                                    <p class="text-muted mb-0">Los resultados aparecerán aquí</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="digestion" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6 class="text-primary"><i class="bi bi-info-circle"></i> Digestión por Restricción</h6>
+                                <div class="row mb-2">
+                                    <div class="col-6"><label class="form-label small">Nº Reacciones:</label><input type="number" id="rx_dig" class="form-control form-control-sm" value="5"></div>
+                                    <div class="col-6"><label class="form-label small">Extra (%):</label><input type="number" id="extra_dig" class="form-control form-control-sm" value="10"></div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-6"><label class="form-label small">Vol. Total (µl):</label><input type="number" id="vt_dig" class="form-control form-control-sm" value="20"></div>
+                                    <div class="col-6"><label class="form-label small">Vol. ADN (µl):</label><input type="number" id="vadn_dig" class="form-control form-control-sm" value="1"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-6"><label class="form-label small">Enzima 1 (µl):</label><input type="number" id="e1_dig" class="form-control form-control-sm" value="0.5" step="0.1"></div>
+                                    <div class="col-6"><label class="form-label small">Enzima 2 (µl):</label><input type="number" id="e2_dig" class="form-control form-control-sm" value="0" step="0.1">
+                                    <div class="form-text" style="font-size:0.7rem;">Pon 0 si es Single Digest</div></div>
+                                </div>
+                                <button class="btn btn-calculate w-100" onclick="calcDigestion()"><i class="bi bi-calculator"></i> Calcular Master Mix</button>
+                            </div>
+                            <div class="col-md-7 mt-4 mt-md-0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-success mb-0 fw-bold d-none d-md-block" id="titulo-tabla-dig" style="visibility: hidden;"><i class="bi bi-table"></i> Resultados</h6>
+                                    <div class="btn-group" id="btn-export-digestion" style="display: none !important;">
+                                        <button class="btn btn-danger btn-sm text-white" onclick="exportarPDFDigestion()"><i class="bi bi-file-pdf"></i> PDF</button>
+                                        <button class="btn btn-success btn-sm text-white" onclick="exportarExcelDigestion()"><i class="bi bi-file-excel"></i> Excel</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered text-center align-middle">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Componente</th>
+                                                <th>1 Rx (µl)</th>
+                                                <th class="table-success">Master Mix (µl)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla_digestion">
+                                            <tr><td colspan="3" class="text-muted py-3">Haz clic en Calcular</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales para guardar los datos y poder exportarlos
+let resGlobalDilucion = null;
+let resGlobalPrimers = null;
+let resGlobalDigestion = null;
+
+// ==========================================
+// 1. FUNCIONES DE DILUCIÓN
+// ==========================================
+function calcDilucion() {
+    const c1 = $('#c1').val();
+    const c2 = $('#c2').val();
+    const v2 = $('#v2').val();
+    const unidad = $('#unidad_v').val();
+
+    if(!c1 || !c2 || !v2) { alert("Llena todos los campos"); return; }
+
+    $.ajax({
+        url: '/api/diluciones', type: 'POST', contentType: 'application/json',
+        data: JSON.stringify({c1: c1, c2: c2, v2: v2}),
+        success: function(res) {
+            if(res.error) { alert(res.error); return; }
+            resGlobalDilucion = { ...res, c1, c2, unidad };
+            
+            $('#res_dilucion').removeClass('alert-secondary').addClass('alert-success').html(`
+                <h5 class="fw-bold mb-3"><i class="bi bi-check-circle"></i> Resultados</h5>
+                <p class="mb-1">Toma <strong>${res.v1} ${unidad}</strong> de tu Stock Inicial (C₁).</p>
+                <p class="mb-1">Agrega <strong>${res.solvente} ${unidad}</strong> de solvente (agua/buffer).</p>
+                <p class="mt-2 text-success fw-bold border-top border-success pt-2">Volumen Total = ${res.v2} ${unidad}</p>
+            `);
+            $('#btn-export-dilucion').attr('style', 'display: flex !important');
+        }
+    });
+}
+
+function exportarPDFDilucion() {
+    if (!resGlobalDilucion) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a5'); // Formato A5 pequeño para algo rápido
+    
+    doc.setFontSize(16);
+    doc.setTextColor(13, 110, 253);
+    doc.text('Receta de Dilución (C1V1 = C2V2)', 10, 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 10, 22);
+    
+    doc.setFontSize(12);
+    doc.text('Parámetros:', 10, 35);
+    doc.setFontSize(10);
+    doc.text(`- Concentración Inicial (C1): ${resGlobalDilucion.c1}`, 15, 42);
+    doc.text(`- Concentración Final (C2): ${resGlobalDilucion.c2}`, 15, 48);
+    doc.text(`- Volumen Final (V2): ${resGlobalDilucion.v2} ${resGlobalDilucion.unidad}`, 15, 54);
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(25, 135, 84);
+    doc.text('Instrucciones de Preparación:', 10, 68);
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`1. Toma ${resGlobalDilucion.v1} ${resGlobalDilucion.unidad} del Stock Inicial.`, 15, 76);
+    doc.text(`2. Mézclalo con ${resGlobalDilucion.solvente} ${resGlobalDilucion.unidad} de solvente.`, 15, 83);
+    doc.text(`3. Volumen Total final: ${resGlobalDilucion.v2} ${resGlobalDilucion.unidad}.`, 15, 90);
+    
+    doc.save(`Dilucion_${new Date().getTime()}.pdf`);
+}
+
+function exportarExcelDilucion() {
+    if (!resGlobalDilucion) return;
+    let csv = "Reporte de Dilucion,,\nFecha," + new Date().toLocaleDateString('es-ES') + ",\n\n";
+    csv += "Parametro,Valor,Unidad\n";
+    csv += `Concentracion Inicial (C1),${resGlobalDilucion.c1},\n`;
+    csv += `Concentracion Final (C2),${resGlobalDilucion.c2},\n`;
+    csv += `Volumen Final (V2),${resGlobalDilucion.v2},${resGlobalDilucion.unidad}\n\n`;
+    csv += "INSTRUCCIONES,,\n";
+    csv += `Volumen a tomar del Stock,${resGlobalDilucion.v1},${resGlobalDilucion.unidad}\n`;
+    csv += `Volumen de solvente a agregar,${resGlobalDilucion.solvente},${resGlobalDilucion.unidad}\n`;
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+    link.setAttribute("download", `Dilucion_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+// ==========================================
+// 2. FUNCIONES DE PRIMERS
+// ==========================================
+function calcPrimers() {
+    const nmol = $('#nmol').val();
+    const conc = $('#conc_oligo').val();
+
+    if(!nmol || !conc) { alert("Llena todos los campos"); return; }
+
+    $.ajax({
+        url: '/api/primers', type: 'POST', contentType: 'application/json',
+        data: JSON.stringify({nmol: nmol, conc_final: conc}),
+        success: function(res) {
+            if(res.error) { alert(res.error); return; }
+            resGlobalPrimers = res;
+            
+            $('#res_primers').removeClass('alert-secondary').addClass('alert-success').html(`
+                <h5 class="fw-bold mb-3"><i class="bi bi-check-circle"></i> Instrucción</h5>
+                <p class="mb-1">Agrega exactamente:</p>
+                <h2 class="display-5 fw-bold text-success">${res.volumen_ul} µl</h2>
+                <p class="mb-0">de Agua o Buffer TE al tubo liofilizado.</p>
+                <p class="mt-2 text-muted small border-top pt-2">Esto te dará un stock final a ${res.conc_final} µM.</p>
+            `);
+            $('#btn-export-primers').attr('style', 'display: flex !important');
+        }
+    });
+}
+
+function exportarPDFPrimers() {
+    if (!resGlobalPrimers) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a5');
+    
+    doc.setFontSize(16);
+    doc.setTextColor(13, 110, 253);
+    doc.text('Resuspensión de Oligos/Primers', 10, 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 10, 22);
+    
+    doc.setFontSize(12);
+    doc.text('Parámetros:', 10, 35);
+    doc.setFontSize(10);
+    doc.text(`- Cantidad reportada: ${resGlobalPrimers.nmol} nmoles`, 15, 42);
+    doc.text(`- Concentración Deseada: ${resGlobalPrimers.conc_final} µM`, 15, 48);
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(25, 135, 84);
+    doc.text('Instrucción:', 10, 62);
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Inyectar ${resGlobalPrimers.volumen_ul} µl de Buffer TE o Agua.`, 15, 72);
+    
+    doc.save(`Resuspension_Primers_${new Date().getTime()}.pdf`);
+}
+
+function exportarExcelPrimers() {
+    if (!resGlobalPrimers) return;
+    let csv = "Reporte de Resuspension de Primers,,\nFecha," + new Date().toLocaleDateString('es-ES') + ",\n\n";
+    csv += "Parametro,Valor,Unidad\n";
+    csv += `Cantidad en el tubo,${resGlobalPrimers.nmol},nmoles\n`;
+    csv += `Concentracion Deseada,${resGlobalPrimers.conc_final},uM\n\n`;
+    csv += `VOLUMEN DE TE/AGUA A AGREGAR,${resGlobalPrimers.volumen_ul},ul\n`;
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+    link.setAttribute("download", `Primers_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+// ==========================================
+// 3. FUNCIONES DE DIGESTIÓN
+// ==========================================
+function calcDigestion() {
+    const rx = $('#rx_dig').val();
+    const ext = $('#extra_dig').val();
+    const vt = $('#vt_dig').val();
+    const adn = $('#vadn_dig').val();
+    const e1 = $('#e1_dig').val();
+    const e2 = $('#e2_dig').val();
+
+    if(!rx || !vt) { alert("Datos inválidos"); return; }
+
+    $.ajax({
+        url: '/api/digestion', type: 'POST', contentType: 'application/json',
+        data: JSON.stringify({reacciones: rx, extra: ext, vol_total: vt, vol_adn: adn, vol_enzima1: e1, vol_enzima2: e2}),
+        success: function(res) {
+            if(res.error) { alert(res.error); return; }
+            resGlobalDigestion = res;
+            
+            let tabla = `
+                <tr><td>Agua libre de nucleasas</td><td>${res.agua_rx}</td><td class="table-success fw-bold">${res.agua_mm}</td></tr>
+                <tr><td>Buffer 10X</td><td>${res.buffer_rx}</td><td class="table-success fw-bold">${res.buffer_mm}</td></tr>
+                <tr><td>Enzima 1</td><td>${res.enzima1_rx}</td><td class="table-success fw-bold">${res.enzima1_mm}</td></tr>`;
+            
+            if(res.enzima2_rx > 0) {
+                tabla += `<tr><td>Enzima 2</td><td>${res.enzima2_rx}</td><td class="table-success fw-bold">${res.enzima2_mm}</td></tr>`;
+            }
+            
+            let masterMixPorTubo = (res.total_rx - res.adn_rx).toFixed(2);
+            resGlobalDigestion.masterMixPorTubo = masterMixPorTubo; // guardado para el PDF
+
+            tabla += `
+                <tr class="table-secondary"><td><strong>Total Master Mix por tubo</strong></td><td><strong>${masterMixPorTubo}</strong></td><td>-</td></tr>
+                <tr><td>ADN Molde</td><td>${res.adn_rx}</td><td>(No va en MM)</td></tr>
+                <tr class="table-dark text-white"><td><strong>Volumen Final</strong></td><td><strong>${res.total_rx}</strong></td><td>-</td></tr>
+            `;
+            
+            $('#tabla_digestion').html(tabla);
+            $('#titulo-tabla-dig').css('visibility', 'visible');
+            $('#btn-export-digestion').attr('style', 'display: flex !important');
+        }
+    });
+}
+
+function exportarPDFDigestion() {
+    if (!resGlobalDigestion) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const res = resGlobalDigestion;
+    
+    doc.setFontSize(20);
+    doc.setTextColor(13, 110, 253);
+    doc.text('Master Mix: Digestión por Restricción', 105, 20, null, null, 'center');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 20, 35);
+    doc.text(`Reacciones: ${res.reacciones} (+${res.extra}% extra)`, 20, 42);
+    doc.text(`Volumen Final por Tubo: ${res.total_rx} µl`, 20, 49);
+
+    // Dibujar Tabla a mano
+    const startY = 60;
+    doc.setFillColor(33, 37, 41);
+    doc.rect(20, startY, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('Componente', 25, startY + 7);
+    doc.text('1 Rx (µl)', 100, startY + 7);
+    doc.text('Master Mix (µl)', 150, startY + 7);
+    
+    let yPos = startY + 17;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+
+    let filas = [
+        ['Agua libre de nucleasas', res.agua_rx, res.agua_mm],
+        ['Buffer 10X', res.buffer_rx, res.buffer_mm],
+        ['Enzima 1', res.enzima1_rx, res.enzima1_mm]
+    ];
+    if (res.enzima2_rx > 0) filas.push(['Enzima 2', res.enzima2_rx, res.enzima2_mm]);
+
+    filas.forEach(fila => {
+        doc.text(String(fila[0]), 25, yPos);
+        doc.text(String(fila[1]), 100, yPos);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(25, 135, 84); // Verde para el master mix
+        doc.text(String(fila[2]), 150, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        yPos += 8;
+    });
+
+    // Separador
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 2, 190, yPos + 2);
+    yPos += 10;
+
+    doc.text(`Total Master Mix por tubo:`, 25, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text(String(res.masterMixPorTubo), 100, yPos);
+    doc.setFont(undefined, 'normal');
+    yPos += 8;
+
+    doc.text(`ADN Molde:`, 25, yPos);
+    doc.text(String(res.adn_rx), 100, yPos);
+    doc.text(`(Añadir directo al tubo)`, 150, yPos);
+
+    doc.save(`Digestion_MM_${new Date().getTime()}.pdf`);
+}
+
+function exportarExcelDigestion() {
+    if (!resGlobalDigestion) return;
+    const res = resGlobalDigestion;
+    
+    let csvRows = [];
+    csvRows.push(['Master Mix: Digestion por Restriccion', '', '']);
+    csvRows.push(['Fecha', new Date().toLocaleDateString('es-ES'), '']);
+    csvRows.push(['Reacciones', res.reacciones, '']);
+    csvRows.push(['Porcentaje Extra', res.extra + '%', '']);
+    csvRows.push([]);
+    csvRows.push(['Componente', '1 Rx (ul)', 'Master Mix (ul)']);
+    
+    csvRows.push(['Agua libre de nucleasas', res.agua_rx, res.agua_mm]);
+    csvRows.push(['Buffer 10X', res.buffer_rx, res.buffer_mm]);
+    csvRows.push(['Enzima 1', res.enzima1_rx, res.enzima1_mm]);
+    if (res.enzima2_rx > 0) csvRows.push(['Enzima 2', res.enzima2_rx, res.enzima2_mm]);
+    
+    csvRows.push([]);
+    csvRows.push(['Total Master Mix por tubo', res.masterMixPorTubo, '']);
+    csvRows.push(['ADN Molde (No va en MM)', res.adn_rx, '']);
+    csvRows.push(['VOLUMEN FINAL TOTAL', res.total_rx, '']);
+    
+    let csvContent = csvRows.map(e => e.join(",")).join("\n");
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Digestion_MM_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}
