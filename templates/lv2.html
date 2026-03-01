@@ -5,12 +5,12 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Nivel 2 (Lv2) - Cálculo de Ensamblaje</h5>
+                <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Nivel 2 (Lv2) - Cálculo de Ensamblaje</h5>
             </div>
             <div class="card-body">
                 <form id="lv2Form">
                     <div class="mb-3">
-                        <label for="num_guias" class="form-label">Número de Guías:</label>
+                        <label for="num_guias" class="form-label"><i class="bi bi-list-ol"></i> Número de Guías:</label>
                         <select class="form-control" id="num_guias">
                             <option value="1">1 Guía</option>
                             <option value="2">2 Guías</option>
@@ -21,35 +21,32 @@
                         </select>
                     </div>
                     
-                    <h6 class="mt-4">Parámetros de Plásmidos</h6>
-                    <div class="mb-3">
-                        <label for="conc_plasmid1" class="form-label">Concentración Plásmido 1 (ng/µl):</label>
-                        <input type="number" class="form-control" id="conc_plasmid1" value="132.2" step="0.1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="pb_plasmid1" class="form-label">Tamaño Plásmido 1 (pb):</label>
-                        <input type="number" class="form-control" id="pb_plasmid1" value="6234" step="1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="conc_plasmid2" class="form-label">Concentración Plásmido 2 (ng/µl):</label>
-                        <input type="number" class="form-control" id="conc_plasmid2" value="137" step="0.1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="pb_plasmid2" class="form-label">Tamaño Plásmido 2 (pb):</label>
-                        <input type="number" class="form-control" id="pb_plasmid2" value="9623" step="1">
-                    </div>
-                    
-                    <h6 class="mt-4">Parámetros de Guía</h6>
-                    <div class="mb-3">
-                        <label for="conc_guia" class="form-label">Concentración Guía (ng/µl):</label>
-                        <input type="number" class="form-control" id="conc_guia" value="180.2" step="0.1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="pb_guia" class="form-label">Tamaño Guía (pb):</label>
-                        <input type="number" class="form-control" id="pb_guia" value="4588" step="1">
+                    <h6 class="mt-4 text-muted"><i class="bi bi-bezier"></i> Parámetros de Plásmidos</h6>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label for="conc_plasmid1" class="form-label small mb-0">Conc. pICH47732 (ng/µl):</label>
+                            <input type="number" class="form-control form-control-sm" id="conc_plasmid1" value="132.2" step="0.1">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="pb_plasmid1" class="form-label small mb-0">Tamaño pICH47732 (pb):</label>
+                            <input type="number" class="form-control form-control-sm" id="pb_plasmid1" value="6234" step="1">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="conc_plasmid2" class="form-label small mb-0">Conc. pICH47742 (ng/µl):</label>
+                            <input type="number" class="form-control form-control-sm" id="conc_plasmid2" value="137" step="0.1">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="pb_plasmid2" class="form-label small mb-0">Tamaño pICH47742 (pb):</label>
+                            <input type="number" class="form-control form-control-sm" id="pb_plasmid2" value="9623" step="1">
+                        </div>
                     </div>
                     
-                    <button type="button" class="btn btn-calculate w-100" onclick="calcularLv2()">Calcular</button>
+                    <div id="contenedor-guias">
+                        </div>
+                    
+                    <button type="button" class="btn btn-calculate w-100 mt-3" onclick="calcularLv2()">
+                        <i class="bi bi-calculator"></i> Calcular Ensamblaje
+                    </button>
                 </form>
             </div>
         </div>
@@ -57,43 +54,47 @@
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Resultados de Ensamblaje</h5>
+            <div class="card-header bg-success d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados de Ensamblaje</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarPDFLv2()" id="pdfButtonLv2" disabled>
+                        <i class="bi bi-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarExcelLv2()" id="excelButtonLv2" disabled>
+                        <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
+                </div>
             </div>
             <div class="card-body">
-                <div id="resultados" class="result-card p-3">
-                    <p class="text-muted">Complete el formulario y haga clic en "Calcular"</p>
+                <div id="resultados" class="result-card p-3 mb-3">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-clockwise"></i> Complete el formulario y haga clic en "Calcular"</p>
                 </div>
 
-                <div class="table-responsive mt-4">
-                    <table class="table table-bordered">
-                        <thead>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="tablaLv2">
+                        <thead class="table-dark">
                             <tr>
-                                <th>Componente</th>
-                                <th>Volumen (µl)</th>
+                                <th><i class="bi bi-grid"></i> Componente</th>
+                                <th><i class="bi bi-eyedropper"></i> Volumen (µl)</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
-                            <!-- Los resultados se insertarán aquí -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
 
-                <div class="mt-4">
-                    <h6>Información de Cálculos</h6>
+                <div id="infoAdicionalLv2" class="mt-4" style="display: none;">
+                    <h6><i class="bi bi-info-circle"></i> Concentraciones de Trabajo (40 fmol)</h6>
                     <table class="table table-sm table-bordered">
                         <tr>
-                            <td>pICH47732 (pmol):</td>
-                            <td id="pmol_plasmid1">-</td>
+                            <td>pICH47732:</td>
+                            <td id="fmol_plasmid1" class="text-primary fw-bold">-</td>
                         </tr>
                         <tr>
-                            <td>pICH47742 (pmol):</td>
-                            <td id="pmol_plasmid2">-</td>
+                            <td>pICH47742:</td>
+                            <td id="fmol_plasmid2" class="text-primary fw-bold">-</td>
                         </tr>
-                        <tr>
-                            <td>Guía (pmol):</td>
-                            <td id="pmol_guia">-</td>
-                        </tr>
+                        <tbody id="fmol_guias_container"></tbody>
                     </table>
                 </div>
             </div>
@@ -104,21 +105,56 @@
 
 {% block scripts %}
 <script>
+let resultadosLv2 = null;
+let datosInputs = null;
+
+// Función para dibujar las cajas de guías dependiendo del número
+function generarCajasGuias() {
+    const numGuias = parseInt($('#num_guias').val());
+    let html = '';
+    
+    for(let i = 1; i <= numGuias; i++) {
+        html += `
+        <h6 class="mt-3 text-muted border-top pt-2"><i class="bi bi-cursor"></i> Parámetros de Guía ${i}</h6>
+        <div class="row">
+            <div class="col-6 mb-2">
+                <label class="form-label small mb-0">Conc. Guía ${i} (ng/µl):</label>
+                <input type="number" class="form-control form-control-sm input-conc-guia" data-id="${i}" value="180.2" step="0.1">
+            </div>
+            <div class="col-6 mb-2">
+                <label class="form-label small mb-0">Tamaño Guía ${i} (pb):</label>
+                <input type="number" class="form-control form-control-sm input-pb-guia" data-id="${i}" value="4588" step="1">
+            </div>
+        </div>`;
+    }
+    
+    $('#contenedor-guias').html(html);
+    
+    // Volver a conectar el evento para que calcule si el usuario edita
+    $('.input-conc-guia, .input-pb-guia').on('change keyup', calcularLv2);
+}
+
 function calcularLv2() {
     const numGuias = $('#num_guias').val();
     const concPlasmid1 = $('#conc_plasmid1').val();
     const pbPlasmid1 = $('#pb_plasmid1').val();
     const concPlasmid2 = $('#conc_plasmid2').val();
     const pbPlasmid2 = $('#pb_plasmid2').val();
-    const concGuia = $('#conc_guia').val();
-    const pbGuia = $('#pb_guia').val();
+    
+    // Recolectar datos de TODAS las guías en un arreglo
+    let guiasData = [];
+    for(let i = 1; i <= numGuias; i++) {
+        guiasData.push({
+            conc: parseFloat($(`.input-conc-guia[data-id="${i}"]`).val()),
+            pb: parseFloat($(`.input-pb-guia[data-id="${i}"]`).val())
+        });
+    }
 
-    // Mostrar loading
-    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando ensamblaje...</p></div>');
+    $('#pdfButtonLv2, #excelButtonLv2').prop('disabled', true);
 
-    // ¡IMPORTANTE! URL debe ser /api/lv2
     $.ajax({
-        url: '/api/lv2',  // CORREGIDO: /api/lv2
+        url: '/api/lv2',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
@@ -127,86 +163,183 @@ function calcularLv2() {
             pb_plasmid1: parseFloat(pbPlasmid1),
             conc_plasmid2: parseFloat(concPlasmid2),
             pb_plasmid2: parseFloat(pbPlasmid2),
-            conc_guia: parseFloat(concGuia),
-            pb_guia: parseFloat(pbGuia)
+            guias: guiasData
         }),
         success: function(response) {
-            console.log("Respuesta del servidor Lv2:", response); // Para debug
-            
             if (response.error) {
-                $('#resultados').html(`<div class="alert alert-danger">${response.error}</div>`);
+                $('#resultados').html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${response.error}</div>`);
                 return;
             }
 
-            // Mostrar resumen
+            // Guardar para exportación
+            resultadosLv2 = response;
+            resultadosLv2.fecha = new Date().toLocaleString('es-ES');
+            
+            // Guardamos los inputs de las guías también para el PDF
+            datosInputs = {
+                concPlasmid1, pbPlasmid1, concPlasmid2, pbPlasmid2,
+                guias: guiasData
+            };
+
             $('#resultados').html(`
-                <h6>Resumen del Cálculo</h6>
-                <p><strong>Número de guías:</strong> ${response.num_guias}</p>
-                <p><strong>Volumen Total:</strong> ${response.volumen_total} µl</p>
+                <h6><i class="bi bi-check-circle text-success"></i> Resumen de Ensamblaje</h6>
+                <p class="mb-1"><strong>Número de guías:</strong> <span class="badge bg-primary">${response.num_guias}</span></p>
+                <p class="mb-0"><strong>Volumen Total:</strong> <span class="badge bg-success">${response.volumen_total} µl</span></p>
             `);
 
-            // Actualizar tabla de componentes
+            // Tabla de componentes principal
             let tablaHTML = `
-                <tr>
-                    <td>Agua</td>
-                    <td>${response.agua}</td>
-                </tr>
-                <tr>
-                    <td>10x T4 ligasa Buffer</td>
-                    <td>${response.buffer_t4}</td>
-                </tr>
-                <tr>
-                    <td>BPII</td>
-                    <td>${response.bpii}</td>
-                </tr>
-                <tr>
-                    <td>T4 ligasa</td>
-                    <td>${response.t4_ligasa}</td>
-                </tr>
-                <tr>
-                    <td>pICH47732</td>
-                    <td>${response.plasmid1}</td>
-                </tr>
-                <tr>
-                    <td>pICH47742</td>
-                    <td>${response.plasmid2}</td>
-                </tr>
+                <tr><td>Agua</td><td>${response.agua.toFixed(2)}</td></tr>
+                <tr><td>10x T4 ligasa Buffer</td><td>${response.buffer_t4.toFixed(2)}</td></tr>
+                <tr><td>BPII</td><td>${response.bpii.toFixed(2)}</td></tr>
+                <tr><td>T4 ligasa</td><td>${response.t4_ligasa.toFixed(2)}</td></tr>
+                <tr><td>pICH47732 (Plasmid 1)</td><td>${response.plasmid1.toFixed(2)}</td></tr>
+                <tr><td>pICH47742 (Plasmid 2)</td><td>${response.plasmid2.toFixed(2)}</td></tr>
             `;
             
-            // Agregar guías dinámicamente
+            // Agregar los volúmenes de las guías independientes
             for (let i = 1; i <= response.num_guias; i++) {
-                tablaHTML += `
-                <tr>
-                    <td>Guía ${i}</td>
-                    <td>${response.vol_guia || response[`guia${i}_vol`] || '0.00'}</td>
-                </tr>
-                `;
+                let volGuia = response[`guia${i}_vol`];
+                tablaHTML += `<tr><td>Guía ${i}</td><td>${parseFloat(volGuia).toFixed(2)}</td></tr>`;
             }
             
-            tablaHTML += `
-                <tr class="table-active">
-                    <td><strong>TOTAL</strong></td>
-                    <td><strong>${response.volumen_total}</strong></td>
-                </tr>
-            `;
-            
+            tablaHTML += `<tr class="table-success"><td><strong>TOTAL FINAL</strong></td><td><strong>${response.volumen_total.toFixed(2)}</strong></td></tr>`;
             $('#tablaResultados').html(tablaHTML);
 
-            // Actualizar información de cálculos
-            $('#pmol_plasmid1').text(response.pmoles_plasmid1);
-            $('#pmol_plasmid2').text(response.pmoles_plasmid2);
-            $('#pmol_guia').text(response.pmoles_guia);
+            // Información de fmoles
+            $('#fmol_plasmid1').text(response.fmol_plasmid1 + ' fmol/µl');
+            $('#fmol_plasmid2').text(response.fmol_plasmid2 + ' fmol/µl');
+            
+            let fmolesHtml = '';
+            for (let i = 1; i <= response.num_guias; i++) {
+                fmolesHtml += `
+                    <tr>
+                        <td>Guía ${i}:</td>
+                        <td class="text-primary fw-bold">${response.fmol_guias[`guia${i}`]} fmol/µl</td>
+                    </tr>
+                `;
+            }
+            $('#fmol_guias_container').html(fmolesHtml);
+
+            $('#infoAdicionalLv2').show();
+            $('#pdfButtonLv2, #excelButtonLv2').prop('disabled', false);
         },
         error: function(xhr, status, error) {
-            console.error("Error en la petición Lv2:", error, xhr.responseText);
-            $('#resultados').html('<div class="alert alert-danger">Error al calcular. Verifica la consola para detalles.</div>');
+            $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
         }
     });
 }
 
-// Calcular al cargar la página
+function exportarPDFLv2() {
+    if (!resultadosLv2) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    
+    doc.setFontSize(20);
+    doc.setTextColor(25, 135, 84); // Success green
+    doc.text('Reporte de Ensamblaje Lv2', 105, 20, null, null, 'center');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${resultadosLv2.fecha}`, 20, 35);
+    doc.text(`Número de Guías: ${resultadosLv2.num_guias}`, 20, 42);
+    
+    // Información de Plásmidos
+    doc.setFontSize(12);
+    doc.text('Parámetros de Entrada:', 20, 55);
+    doc.setFontSize(10);
+    doc.text(`- pICH47732: ${datosInputs.concPlasmid1} ng/µl | ${datosInputs.pbPlasmid1} pb`, 25, 62);
+    doc.text(`- pICH47742: ${datosInputs.concPlasmid2} ng/µl | ${datosInputs.pbPlasmid2} pb`, 25, 69);
+    
+    let y = 76;
+    for (let i = 0; i < datosInputs.guias.length; i++) {
+        doc.text(`- Guía ${i+1}: ${datosInputs.guias[i].conc} ng/µl | ${datosInputs.guias[i].pb} pb`, 25, y);
+        y += 7;
+    }
+
+    // Preparar datos de la tabla
+    let bodyData = [
+        ['Agua', resultadosLv2.agua.toFixed(2)],
+        ['10x T4 ligasa Buffer', resultadosLv2.buffer_t4.toFixed(2)],
+        ['BPII', resultadosLv2.bpii.toFixed(2)],
+        ['T4 ligasa', resultadosLv2.t4_ligasa.toFixed(2)],
+        ['pICH47732 (Plasmid 1)', resultadosLv2.plasmid1.toFixed(2)],
+        ['pICH47742 (Plasmid 2)', resultadosLv2.plasmid2.toFixed(2)]
+    ];
+
+    for (let i = 1; i <= resultadosLv2.num_guias; i++) {
+        bodyData.push([`Guía ${i}`, resultadosLv2[`guia${i}_vol`].toFixed(2)]);
+    }
+
+    doc.autoTable({
+        startY: y + 5,
+        head: [['Componente', 'Volumen (µl)']],
+        body: bodyData,
+        theme: 'grid',
+        headStyles: { fillColor: [25, 135, 84] },
+        foot: [['TOTAL FINAL', resultadosLv2.volumen_total.toFixed(2)]],
+        footStyles: { fillColor: [230, 245, 233], textColor: [0,0,0], fontStyle: 'bold' }
+    });
+    
+    doc.save(`ensamblaje_lv2_${new Date().getTime()}.pdf`);
+}
+
+function exportarExcelLv2() {
+    if (!resultadosLv2) return;
+    
+    let csvRows = [];
+    csvRows.push(['Ensamblaje Nivel 2 (Lv2) - Reporte', '']);
+    csvRows.push(['Fecha', resultadosLv2.fecha]);
+    csvRows.push(['Número de guías', resultadosLv2.num_guias]);
+    csvRows.push([]);
+    csvRows.push(['Parámetros de Entrada', 'Concentración (ng/ul)', 'Tamaño (pb)']);
+    csvRows.push(['pICH47732', datosInputs.concPlasmid1, datosInputs.pbPlasmid1]);
+    csvRows.push(['pICH47742', datosInputs.concPlasmid2, datosInputs.pbPlasmid2]);
+    
+    for (let i = 0; i < datosInputs.guias.length; i++) {
+        csvRows.push([`Guía ${i+1}`, datosInputs.guias[i].conc, datosInputs.guias[i].pb]);
+    }
+    csvRows.push([]);
+    
+    csvRows.push(['Resultados del Cálculo', '']);
+    csvRows.push(['Componente', 'Volumen (ul)']);
+    csvRows.push(['Agua', resultadosLv2.agua.toFixed(2)]);
+    csvRows.push(['10x T4 ligasa Buffer', resultadosLv2.buffer_t4.toFixed(2)]);
+    csvRows.push(['BPII', resultadosLv2.bpii.toFixed(2)]);
+    csvRows.push(['T4 ligasa', resultadosLv2.t4_ligasa.toFixed(2)]);
+    csvRows.push(['pICH47732', resultadosLv2.plasmid1.toFixed(2)]);
+    csvRows.push(['pICH47742', resultadosLv2.plasmid2.toFixed(2)]);
+    
+    for (let i = 1; i <= resultadosLv2.num_guias; i++) {
+        csvRows.push([`Guia ${i}`, resultadosLv2[`guia${i}_vol`].toFixed(2)]);
+    }
+    
+    csvRows.push(['TOTAL', resultadosLv2.volumen_total.toFixed(2)]);
+    
+    let csvContent = csvRows.map(e => e.join(",")).join("\n");
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `ensamblaje_lv2_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 $(document).ready(function() {
+    // Generar la primera guía al cargar
+    generarCajasGuias();
     calcularLv2();
+    
+    // Escuchar el cambio en el selector de número de guías
+    $('#num_guias').change(function() {
+        generarCajasGuias();
+        calcularLv2();
+    });
+    
+    // Recalcular automático para los plásmidos fijos
+    $('#conc_plasmid1, #pb_plasmid1, #conc_plasmid2, #pb_plasmid2').on('change keyup', calcularLv2);
 });
 </script>
 {% endblock %}

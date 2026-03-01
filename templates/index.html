@@ -25,7 +25,6 @@
                         <div class="form-text">Recomendado: 1-1.5 µl por reacción</div>
                     </div>
                     
-                    <!-- CAMPO DE PORCENTAJE EXTRA (EDITABLE) -->
                     <div class="mb-3">
                         <label for="porcentaje_extra" class="form-label">
                             <i class="bi bi-percent"></i> Porcentaje Extra Master Mix (%):
@@ -36,6 +35,27 @@
                         </div>
                         <div class="form-text">
                             <i class="bi bi-info-circle"></i> Extra para error de pipeteo. Ingrese 0 si no desea extra.
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="text-muted"><i class="bi bi-sliders"></i> Volúmenes Base por Reacción (µl)</h6>
+                    <div class="row mb-3">
+                        <div class="col-6 mb-2">
+                            <label for="base_total" class="form-label small mb-0">Volumen Total</label>
+                            <input type="number" class="form-control form-control-sm" id="base_total" value="50" step="1">
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label for="base_buffer" class="form-label small mb-0">Buffer 5x</label>
+                            <input type="number" class="form-control form-control-sm" id="base_buffer" value="10" step="0.1">
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label for="base_primers" class="form-label small mb-0">Primers (Fw/Rv)</label>
+                            <input type="number" class="form-control form-control-sm" id="base_primers" value="2" step="0.1">
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label for="base_polimerasa" class="form-label small mb-0">Polimerasa</label>
+                            <input type="number" class="form-control form-control-sm" id="base_polimerasa" value="0.4" step="0.1">
                         </div>
                     </div>
                     
@@ -52,18 +72,6 @@
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Volumen total por reacción: <strong>50 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Buffer Hifi 5x: <strong>10 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Primers Fw/Rv: <strong>2 µl cada uno</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Polimerasa: <strong>0.4 µl</strong>
-                    </li>
                     <li class="list-group-item">
                         <i class="bi bi-exclamation-triangle text-warning"></i> <strong>Nota:</strong> El porcentaje extra se aplica al Master Mix (todos los componentes excepto ADN)
                     </li>
@@ -102,29 +110,23 @@
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
-                            <!-- Los resultados se insertarán aquí dinámicamente -->
-                        </tbody>
+                            </tbody>
                         <tfoot id="tablaFooter" style="display: none;">
                             <tr class="table-success">
                                 <td><strong>TOTAL FINAL</strong></td>
-                                <td><strong>50.0</strong></td>
+                                <td><strong id="totalBasePie">50.0</strong></td>
                                 <td><strong id="totalFinal">0.0</strong></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
                 
-                <!-- Información adicional para exportación -->
                 <div id="infoAdicional" class="mt-3" style="display: none;">
                     <h6><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
                     <table class="table table-sm table-bordered">
                         <tr>
                             <td>Fecha de cálculo:</td>
                             <td id="fechaCalculo"></td>
-                        </tr>
-                        <tr>
-                            <td>Protocolo:</td>
-                            <td>PCR Inicial - Volumen: 50 µl por reacción</td>
                         </tr>
                         <tr>
                             <td>Notas:</td>
@@ -144,9 +146,14 @@
 let resultadosPCR = null;
 
 function calcularPCR() {
+    // CAPTURAMOS TODOS LOS VALORES
     const numReacciones = $('#num_reacciones').val();
     const volumenAdn = $('#volumen_adn').val();
     const porcentajeExtra = $('#porcentaje_extra').val();
+    const baseTotal = $('#base_total').val();
+    const baseBuffer = $('#base_buffer').val();
+    const basePrimers = $('#base_primers').val();
+    const basePolimerasa = $('#base_polimerasa').val();
     
     // Validación básica
     if (numReacciones < 1) {
@@ -175,7 +182,11 @@ function calcularPCR() {
         data: JSON.stringify({
             num_reacciones: numReacciones,
             volumen_adn: volumenAdn,
-            porcentaje_extra: porcentajeExtra
+            porcentaje_extra: porcentajeExtra,
+            base_total: baseTotal,
+            base_buffer: baseBuffer,
+            base_primers: basePrimers,
+            base_polimerasa: basePolimerasa
         }),
         success: function(response) {
             if (response.error) {
@@ -213,26 +224,26 @@ function calcularPCR() {
             // Actualizar fecha
             $('#fechaCalculo').text(resultadosPCR.fecha);
             
-            // Actualizar tabla
+            // Actualizar tabla con los datos dinámicos
             const tabla = `
                 <tr>
                     <td><i class="bi bi-droplet"></i> Agua</td>
-                    <td>32.6</td>
+                    <td>${response.base_agua.toFixed(2)}</td>
                     <td>${response.agua.toFixed(1)}</td>
                 </tr>
                 <tr>
                     <td><i class="bi bi-box"></i> Buffer 5x Hifi</td>
-                    <td>10.0</td>
+                    <td>${response.base_buffer}</td>
                     <td>${response.buffer.toFixed(1)}</td>
                 </tr>
                 <tr>
                     <td><i class="bi bi-arrow-right-circle"></i> Primer Forward</td>
-                    <td>2.0</td>
+                    <td>${response.base_primers}</td>
                     <td>${response.fw.toFixed(1)}</td>
                 </tr>
                 <tr>
                     <td><i class="bi bi-arrow-left-circle"></i> Primer Reverse</td>
-                    <td>2.0</td>
+                    <td>${response.base_primers}</td>
                     <td>${response.rv.toFixed(1)}</td>
                 </tr>
                 <tr>
@@ -242,12 +253,13 @@ function calcularPCR() {
                 </tr>
                 <tr>
                     <td><i class="bi bi-gear"></i> Polimerasa</td>
-                    <td>0.4</td>
+                    <td>${response.base_polimerasa}</td>
                     <td>${response.polimerasa.toFixed(1)}</td>
                 </tr>
             `;
             $('#tablaResultados').html(tabla);
             $('#tablaFooter').show();
+            $('#totalBasePie').text(response.base_total.toFixed(1));
             $('#totalFinal').text(response.total_con_extra.toFixed(1) + ' µl');
             
             // Mostrar información adicional
@@ -297,7 +309,7 @@ function exportarPDF() {
     doc.setTextColor(0, 0, 0);
     doc.text(`Fecha: ${fecha}`, 20, 35);
     doc.text(`Laboratorio: SDF Lab`, 20, 42);
-    doc.text(`Protocolo: PCR Inicial - 50 µl por reacción`, 20, 49);
+    doc.text(`Protocolo: PCR Inicial - ${resultadosPCR.base_total} µl por reacción`, 20, 49);
     
     // Parámetros de entrada
     doc.setFontSize(14);
@@ -318,13 +330,13 @@ function exportarPDF() {
     const columnWidths = [80, 40, 40]; // Ancho de columnas
     const headers = ['Componente', 'µl/Reacción', 'µl Totales'];
     const data = [
-        ['Agua', '32.6', resultadosPCR.agua.toFixed(1)],
-        ['Buffer 5x Hifi', '10.0', resultadosPCR.buffer.toFixed(1)],
-        ['Primer Forward', '2.0', resultadosPCR.fw.toFixed(1)],
-        ['Primer Reverse', '2.0', resultadosPCR.rv.toFixed(1)],
+        ['Agua', resultadosPCR.base_agua.toFixed(2), resultadosPCR.agua.toFixed(1)],
+        ['Buffer 5x Hifi', resultadosPCR.base_buffer.toString(), resultadosPCR.buffer.toFixed(1)],
+        ['Primer Forward', resultadosPCR.base_primers.toString(), resultadosPCR.fw.toFixed(1)],
+        ['Primer Reverse', resultadosPCR.base_primers.toString(), resultadosPCR.rv.toFixed(1)],
         ['ADN', resultadosPCR.volumen_adn.toFixed(1), resultadosPCR.adn.toFixed(1)],
-        ['Polimerasa', '0.4', resultadosPCR.polimerasa.toFixed(1)],
-        ['TOTAL FINAL', '50.0', resultadosPCR.total_con_extra.toFixed(1)]
+        ['Polimerasa', resultadosPCR.base_polimerasa.toString(), resultadosPCR.polimerasa.toFixed(1)],
+        ['TOTAL FINAL', resultadosPCR.base_total.toFixed(1), resultadosPCR.total_con_extra.toFixed(1)]
     ];
     
     // Encabezado de tabla
@@ -433,7 +445,7 @@ function exportarExcel() {
     
     // Información general
     csvContent += `"Fecha","${resultadosPCR.fecha}"\n`;
-    csvContent += `"Protocolo","PCR Inicial - 50 µl por reacción"\n`;
+    csvContent += `"Protocolo","PCR Inicial - ${resultadosPCR.base_total} µl por reacción"\n`;
     csvContent += "\n";
     
     // Parámetros de entrada
@@ -446,13 +458,13 @@ function exportarExcel() {
     // Resultados
     csvContent += '"Resultados del Cálculo","",""' + "\n";
     csvContent += '"Componente","µl/Reacción","µl Totales"' + "\n";
-    csvContent += `"Agua","32.6","${resultadosPCR.agua.toFixed(1)}"\n`;
-    csvContent += `"Buffer 5x Hifi","10.0","${resultadosPCR.buffer.toFixed(1)}"\n`;
-    csvContent += `"Primer Forward","2.0","${resultadosPCR.fw.toFixed(1)}"\n`;
-    csvContent += `"Primer Reverse","2.0","${resultadosPCR.rv.toFixed(1)}"\n`;
+    csvContent += `"Agua","${resultadosPCR.base_agua.toFixed(2)}","${resultadosPCR.agua.toFixed(1)}"\n`;
+    csvContent += `"Buffer 5x Hifi","${resultadosPCR.base_buffer}","${resultadosPCR.buffer.toFixed(1)}"\n`;
+    csvContent += `"Primer Forward","${resultadosPCR.base_primers}","${resultadosPCR.fw.toFixed(1)}"\n`;
+    csvContent += `"Primer Reverse","${resultadosPCR.base_primers}","${resultadosPCR.rv.toFixed(1)}"\n`;
     csvContent += `"ADN","${resultadosPCR.volumen_adn.toFixed(1)}","${resultadosPCR.adn.toFixed(1)}"\n`;
-    csvContent += `"Polimerasa","0.4","${resultadosPCR.polimerasa.toFixed(1)}"\n`;
-    csvContent += `"TOTAL FINAL","50.0","${resultadosPCR.total_con_extra.toFixed(1)}"\n`;
+    csvContent += `"Polimerasa","${resultadosPCR.base_polimerasa}","${resultadosPCR.polimerasa.toFixed(1)}"\n`;
+    csvContent += `"TOTAL FINAL","${resultadosPCR.base_total.toFixed(1)}","${resultadosPCR.total_con_extra.toFixed(1)}"\n`;
     csvContent += "\n";
     
     // Información adicional
@@ -490,7 +502,7 @@ $(document).ready(function() {
     calcularPCR();
     
     // Event listeners para recálculo automático
-    $('#num_reacciones, #volumen_adn, #porcentaje_extra').on('change keyup', function() {
+    $('#num_reacciones, #volumen_adn, #porcentaje_extra, #base_total, #base_buffer, #base_primers, #base_polimerasa').on('change keyup', function() {
         calcularPCR();
     });
     

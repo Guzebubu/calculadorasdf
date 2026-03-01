@@ -43,26 +43,45 @@ def calcular_pcr_inicial():
         volumen_adn = float(data.get('volumen_adn', 1.5))
         porcentaje_extra = float(data.get('porcentaje_extra', 10))
         
-        # Cálculos
-        agua_base = num_reacciones * 32.6
-        buffer_base = num_reacciones * 10
-        fw_base = num_reacciones * 2
-        rv_base = num_reacciones * 2
+        # 1. NUEVOS PARÁMETROS DINÁMICOS
+        base_total = float(data.get('base_total', 50))
+        base_buffer = float(data.get('base_buffer', 10))
+        base_primers = float(data.get('base_primers', 2))
+        base_polimerasa = float(data.get('base_polimerasa', 0.4))
+        
+        # 2. CÁLCULO INTELIGENTE DEL AGUA
+        # El agua se calcula sola restando los demás componentes al total
+        base_agua = base_total - (base_buffer + (base_primers * 2) + base_polimerasa + volumen_adn)
+        
+        # 3. MULTIPLICACIÓN POR NÚMERO DE REACCIONES
+        agua_base = num_reacciones * base_agua
+        buffer_base = num_reacciones * base_buffer
+        fw_base = num_reacciones * base_primers
+        rv_base = num_reacciones * base_primers
         adn_base = num_reacciones * volumen_adn
-        polimerasa_base = num_reacciones * 0.4
-        total_base = num_reacciones * 50
+        polimerasa_base = num_reacciones * base_polimerasa
+        total_base = num_reacciones * base_total
         
         factor_extra = 1 + (porcentaje_extra / 100)
         
         resultados = {
+            # Valores por reacción (para mostrarlos en la tabla)
+            'base_agua': round(base_agua, 2),
+            'base_buffer': base_buffer,
+            'base_primers': base_primers,
+            'base_polimerasa': base_polimerasa,
+            'base_total': base_total,
+            
+            # Totales con porcentaje extra (excepto ADN)
             'agua': round(agua_base * factor_extra, 1),
             'buffer': round(buffer_base * factor_extra, 1),
             'fw': round(fw_base * factor_extra, 1),
             'rv': round(rv_base * factor_extra, 1),
             'adn': round(adn_base, 1),
             'polimerasa': round(polimerasa_base * factor_extra, 1),
-            'total_base': round(total_base, 1),
             'total_con_extra': round((total_base - adn_base) * factor_extra + adn_base, 1),
+            
+            # Datos generales
             'num_reacciones': num_reacciones,
             'porcentaje_extra': porcentaje_extra,
             'vol_master_mix': round((total_base - adn_base) * factor_extra, 1),
@@ -227,33 +246,51 @@ def calcular_lv2():
         data = request.get_json()
         num_guias = int(data.get('num_guias', 1))
         
-        # Parámetros de entrada
+        # Parámetros de Plásmidos
         conc_plasmid1 = float(data.get('conc_plasmid1', 132.2))
         pb_plasmid1 = float(data.get('pb_plasmid1', 6234))
         conc_plasmid2 = float(data.get('conc_plasmid2', 137))
         pb_plasmid2 = float(data.get('pb_plasmid2', 9623))
-        conc_guia = float(data.get('conc_guia', 180.2))
-        pb_guia = float(data.get('pb_guia', 4588))
         
-        # Parámetros según número de guías
+        # Parámetros fijos
         volumen_total = 20
         buffer_t4 = 2
         bpii = 1
         t4_ligasa = 0.5
         
-        # Cálculos de pmoles
+        # Cálculos de pmoles plásmidos
         pmoles_plasmid1 = (conc_plasmid1 * 1000000) / (660 * pb_plasmid1) * 1000
         pmoles_plasmid2 = (conc_plasmid2 * 1000000) / (660 * pb_plasmid2) * 1000
-        pmoles_guia = (conc_guia * 1000000) / (660 * pb_guia) * 1000
         
-        # Volúmenes
+        # Volúmenes plásmidos
         vol_plasmid1 = 40 / (pmoles_plasmid1 / 1000) if pmoles_plasmid1 > 0 else 0
         vol_plasmid2 = 40 / (pmoles_plasmid2 / 1000) if pmoles_plasmid2 > 0 else 0
-        vol_guia = 40 / (pmoles_guia / 1000) if pmoles_guia > 0 else 0
         
+        # Procesar lista de guías dinámicas
+        guias_data = data.get('guias', [])
+        volumen_guias_total = 0
+        resultados_guias = {}
+        fmol_guias = {}
+        
+        for i in range(num_guias):
+            # Obtener datos de cada guía, si no existe toma un valor por defecto
+            if i < len(guias_data):
+                conc_g = float(guias_data[i].get('conc', 180.2))
+                pb_g = float(guias_data[i].get('pb', 4588))
+            else:
+                conc_g = 180.2
+                pb_g = 4588
+                
+            pmol_g = (conc_g * 1000000) / (660 * pb_g) * 1000
+            vol_g = 40 / (pmol_g / 1000) if pmol_g > 0 else 0
+            
+            resultados_guias[f'guia{i+1}_vol'] = round(vol_g, 2)
+            fmol_guias[f'guia{i+1}'] = round(pmol_g / 1000, 2)
+            volumen_guias_total += vol_g
+            
         # Calcular agua
         suma_fija = buffer_t4 + bpii + t4_ligasa
-        suma_variable = vol_plasmid1 + vol_plasmid2 + (vol_guia * num_guias)
+        suma_variable = vol_plasmid1 + vol_plasmid2 + volumen_guias_total
         agua = max(0, volumen_total - (suma_fija + suma_variable))
         
         # Resultados
@@ -266,20 +303,18 @@ def calcular_lv2():
             'plasmid2': round(vol_plasmid2, 2),
             'volumen_total': volumen_total,
             'num_guias': num_guias,
-            'pmoles_plasmid1': round(pmoles_plasmid1, 2),
-            'pmoles_plasmid2': round(pmoles_plasmid2, 2),
-            'pmoles_guia': round(pmoles_guia, 2),
-            'vol_guia': round(vol_guia, 2)
+            'fmol_plasmid1': round(pmoles_plasmid1 / 1000, 2),
+            'fmol_plasmid2': round(pmoles_plasmid2 / 1000, 2),
+            'fmol_guias': fmol_guias # Diccionario con fmoles de cada guía
         }
         
-        # Agregar cada guía individualmente
-        for i in range(1, num_guias + 1):
-            resultados[f'guia{i}_vol'] = round(vol_guia, 2)
+        # Agregar los volúmenes de cada guía al resultado principal
+        resultados.update(resultados_guias)
         
         return jsonify(resultados)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-
+    
 # MEDIOS DE CULTIVO
 @app.route('/api/medios', methods=['POST'])
 def calcular_medios():

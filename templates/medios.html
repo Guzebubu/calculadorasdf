@@ -5,12 +5,12 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Medios de Cultivo - Cálculo</h5>
+                <h5 class="mb-0"><i class="bi bi-flower1"></i> Medios de Cultivo - Cálculo</h5>
             </div>
             <div class="card-body">
                 <form id="mediosForm">
                     <div class="mb-3">
-                        <label for="tipo_medio" class="form-label">Tipo de Medio:</label>
+                        <label for="tipo_medio" class="form-label"><i class="bi bi-funnel"></i> Tipo de Medio:</label>
                         <select class="form-control" id="tipo_medio">
                             <option value="germinacion">Medio de Germinación</option>
                             <option value="co_culture">Medio de Co-cultivo</option>
@@ -20,19 +20,21 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="volumen_preparar" class="form-label">Volumen a Preparar (ml):</label>
+                        <label for="volumen_preparar" class="form-label"><i class="bi bi-droplet"></i> Volumen a Preparar (ml):</label>
                         <input type="number" class="form-control" id="volumen_preparar" value="1000" step="10">
                         <div class="form-text">Volumen total del medio en mililitros</div>
                     </div>
                     
-                    <button type="button" class="btn btn-calculate w-100" onclick="calcularMedios()">Calcular</button>
+                    <button type="button" class="btn btn-calculate w-100" onclick="calcularMedios()">
+                        <i class="bi bi-calculator"></i> Calcular
+                    </button>
                 </form>
             </div>
         </div>
         
         <div class="card mt-4">
             <div class="card-header">
-                <h6 class="mb-0">Descripción de Medios</h6>
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Descripción de Medios</h6>
             </div>
             <div class="card-body">
                 <p><strong>Germinación:</strong> Para germinación de semillas estériles.</p>
@@ -45,34 +47,39 @@
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Resultados</h5>
+            <div class="card-header bg-success d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarPDFMedios()" id="pdfButtonMedios" disabled>
+                        <i class="bi bi-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-light btn-sm" onclick="exportarExcelMedios()" id="excelButtonMedios" disabled>
+                        <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
+                </div>
             </div>
             <div class="card-body">
-                <div id="resultados" class="result-card p-3">
-                    <p class="text-muted">Seleccione el tipo de medio y haga clic en "Calcular"</p>
+                <div id="resultados" class="result-card p-3 mb-3">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-clockwise"></i> Seleccione el tipo de medio y haga clic en "Calcular"</p>
                 </div>
 
-                <div class="table-responsive mt-4">
-                    <table class="table table-bordered">
-                        <thead>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="tablaMedios">
+                        <thead class="table-dark">
                             <tr>
-                                <th>Componente</th>
-                                <th>Cantidad</th>
+                                <th><i class="bi bi-grid"></i> Componente</th>
+                                <th><i class="bi bi-eyedropper"></i> Cantidad</th>
                                 <th>Unidad</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
-                            <!-- Los resultados se insertarán aquí -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
 
                 <div class="mt-4">
-                    <h6>Información Adicional</h6>
-                    <div id="infoAdicional" class="alert alert-info">
-                        <!-- Información específica del medio -->
-                    </div>
+                    <div id="infoAdicional" class="alert alert-info" style="display: none;">
+                        </div>
                 </div>
             </div>
         </div>
@@ -82,22 +89,33 @@
 
 {% block scripts %}
 <script>
+// Variables globales para exportación
+let resultadosMedios = null;
+let datosInputsMedios = null;
+
+const nombresMedios = {
+    'germinacion': 'Medio de Germinación',
+    'co_culture': 'Medio de Co-cultivo',
+    'selection': 'Medio de Selección',
+    'rooting': 'Medio de Enraizamiento'
+};
+
 function calcularMedios() {
     const tipoMedio = $('#tipo_medio').val();
     const volumenPreparar = $('#volumen_preparar').val();
 
     // Validación
     if (!volumenPreparar || volumenPreparar <= 0) {
-        $('#resultados').html('<div class="alert alert-danger">Ingrese un volumen válido (mayor a 0 ml)</div>');
+        $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Ingrese un volumen válido (mayor a 0 ml)</div>');
         return;
     }
 
-    // Mostrar loading
+    // Mostrar loading y deshabilitar botones
     $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+    $('#pdfButtonMedios, #excelButtonMedios').prop('disabled', true);
 
-    // ¡IMPORTANTE! URL debe ser /api/medios
     $.ajax({
-        url: '/api/medios',  // CORREGIDO: /api/medios
+        url: '/api/medios',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
@@ -105,104 +123,53 @@ function calcularMedios() {
             volumen_preparar: parseFloat(volumenPreparar)
         }),
         success: function(response) {
-            console.log("Respuesta del servidor Medios:", response);
-            
             if (response.error) {
-                $('#resultados').html(`<div class="alert alert-danger">${response.error}</div>`);
+                $('#resultados').html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${response.error}</div>`);
                 return;
             }
 
-            // Mostrar resumen
-            const nombresMedios = {
-                'germinacion': 'Medio de Germinación',
-                'co_culture': 'Medio de Co-cultivo',
-                'selection': 'Medio de Selección',
-                'rooting': 'Medio de Enraizamiento'
+            // Guardar para exportación
+            resultadosMedios = response;
+            resultadosMedios.fecha = new Date().toLocaleString('es-ES');
+            datosInputsMedios = {
+                tipoMedio: tipoMedio,
+                nombreMedio: nombresMedios[tipoMedio],
+                volumenPreparar: parseFloat(volumenPreparar)
             };
-            
+
+            // Mostrar resumen
             $('#resultados').html(`
-                <h6>Resumen del Cálculo</h6>
-                <p><strong>Tipo de medio:</strong> ${nombresMedios[tipoMedio] || tipoMedio}</p>
-                <p><strong>Volumen total:</strong> ${response.h2o_ml} ml</p>
-                <p><strong>pH recomendado:</strong> ${response.ph}</p>
+                <h6><i class="bi bi-check-circle text-success"></i> Resumen de Preparación</h6>
+                <p class="mb-1"><strong>Tipo de medio:</strong> <span class="badge bg-primary">${datosInputsMedios.nombreMedio}</span></p>
+                <p class="mb-1"><strong>Volumen total:</strong> <span class="badge bg-success">${response.h2o_ml} ml</span></p>
+                <p class="mb-0"><strong>pH recomendado:</strong> <span class="badge bg-secondary">${response.ph}</span></p>
             `);
 
             // Actualizar tabla de componentes
-            let tablaHTML = '';
-            
-            // Componentes base para todos los medios
-            tablaHTML += `
-                <tr>
-                    <td>Agua destilada</td>
-                    <td>${response.h2o_ml}</td>
-                    <td>ml</td>
-                </tr>
-                <tr>
-                    <td>Sales MS</td>
-                    <td>${response.ms_g}</td>
-                    <td>g</td>
-                </tr>
-                <tr>
-                    <td>Sacarosa</td>
-                    <td>${response.sacarosa_g}</td>
-                    <td>g</td>
-                </tr>
-                <tr>
-                    <td>Agar</td>
-                    <td>${response.agar_g}</td>
-                    <td>g</td>
-                </tr>
+            let tablaHTML = `
+                <tr><td>Agua destilada</td><td>${response.h2o_ml}</td><td>ml</td></tr>
+                <tr><td>Sales MS</td><td>${response.ms_g}</td><td>g</td></tr>
+                <tr><td>Sacarosa</td><td>${response.sacarosa_g}</td><td>g</td></tr>
+                <tr><td>Agar</td><td>${response.agar_g}</td><td>g</td></tr>
             `;
             
             // Componentes específicos por tipo de medio
             if (tipoMedio === 'co_culture') {
                 tablaHTML += `
-                    <tr>
-                        <td>2,4-D (1 mg/ml)</td>
-                        <td>${response.d24_ul}</td>
-                        <td>µl</td>
-                    </tr>
-                    <tr>
-                        <td>Kinetina (1 mg/ml)</td>
-                        <td>${response.kinetina_ul}</td>
-                        <td>µl</td>
-                    </tr>
+                    <tr><td>2,4-D (1 mg/ml)</td><td>${response.d24_ul}</td><td>µl</td></tr>
+                    <tr><td>Kinetina (1 mg/ml)</td><td>${response.kinetina_ul}</td><td>µl</td></tr>
                 `;
             } else if (tipoMedio === 'selection') {
                 tablaHTML += `
-                    <tr>
-                        <td>Tzeatina (1 mg/ml)</td>
-                        <td>${response.tzeatina_ul}</td>
-                        <td>µl</td>
-                    </tr>
-                    <tr>
-                        <td>Meropenem (50 mg/ml)</td>
-                        <td>${response.meropenem_ul}</td>
-                        <td>µl</td>
-                    </tr>
-                    <tr>
-                        <td>Kanamicina (50 mg/ml)</td>
-                        <td>${response.kanamicina_ul}</td>
-                        <td>µl</td>
-                    </tr>
+                    <tr><td>Tzeatina (1 mg/ml)</td><td>${response.tzeatina_ul}</td><td>µl</td></tr>
+                    <tr><td>Meropenem (50 mg/ml)</td><td>${response.meropenem_ul}</td><td>µl</td></tr>
+                    <tr><td>Kanamicina (50 mg/ml)</td><td>${response.kanamicina_ul}</td><td>µl</td></tr>
                 `;
             } else if (tipoMedio === 'rooting') {
                 tablaHTML += `
-                    <tr>
-                        <td>IAA (1 mg/ml)</td>
-                        <td>${response.iaa_ul}</td>
-                        <td>µl</td>
-                    </tr>
-                    <tr>
-                        <td>Meropenem (50 mg/ml)</td>
-                        <td>${response.meropenem_ul}</td>
-                        <td>µl</td>
-                    </tr>
-                    <tr>
-                        <td>Kanamicina (50 mg/ml)</td>
-                        <td>${response.kanamicina_ul}</td>
-                        <td>µl</td>
-                    </tr>
+                    <tr><td>IAA (1 mg/ml)</td><td>${response.iaa_ul}</td><td>µl</td></tr>
+                    <tr><td>Meropenem (50 mg/ml)</td><td>${response.meropenem_ul}</td><td>µl</td></tr>
+                    <tr><td>Kanamicina (50 mg/ml)</td><td>${response.kanamicina_ul}</td><td>µl</td></tr>
                 `;
             }
             
@@ -212,8 +179,8 @@ function calcularMedios() {
             let infoHTML = '';
             if (tipoMedio === 'germinacion') {
                 infoHTML = `
-                    <h6><i class="fas fa-seedling"></i> Instrucciones para Germinación:</h6>
-                    <ul class="mb-0">
+                    <h6 class="alert-heading"><i class="bi bi-seedling"></i> Instrucciones para Germinación:</h6>
+                    <ul class="mb-0 small">
                         <li>Esterilizar semillas antes de sembrar</li>
                         <li>Mantener a 25°C con fotoperiodo 16/8 h</li>
                         <li>Germinación en 7-10 días</li>
@@ -221,8 +188,8 @@ function calcularMedios() {
                 `;
             } else if (tipoMedio === 'co_culture') {
                 infoHTML = `
-                    <h6><i class="fas fa-bacteria"></i> Instrucciones para Co-cultivo:</h6>
-                    <ul class="mb-0">
+                    <h6 class="alert-heading"><i class="bi bi-bug"></i> Instrucciones para Co-cultivo:</h6>
+                    <ul class="mb-0 small">
                         <li>Usar Agrobacterium en fase logarítmica (OD600 = 0.6-0.8)</li>
                         <li>Co-cultivar por 48-72 horas en oscuridad</li>
                         <li>Lavar explantes con agua estéril + antibiótico después</li>
@@ -230,8 +197,8 @@ function calcularMedios() {
                 `;
             } else if (tipoMedio === 'selection') {
                 infoHTML = `
-                    <h6><i class="fas fa-filter"></i> Instrucciones para Selección:</h6>
-                    <ul class="mb-0">
+                    <h6 class="alert-heading"><i class="bi bi-filter-circle"></i> Instrucciones para Selección:</h6>
+                    <ul class="mb-0 small">
                         <li>Cambiar medio cada 2 semanas</li>
                         <li>Mantener en oscuridad los primeros 7 días</li>
                         <li>Selección durante 4-6 semanas</li>
@@ -239,8 +206,8 @@ function calcularMedios() {
                 `;
             } else if (tipoMedio === 'rooting') {
                 infoHTML = `
-                    <h6><i class="fas fa-root"></i> Instrucciones para Enraizamiento:</h6>
-                    <ul class="mb-0">
+                    <h6 class="alert-heading"><i class="bi bi-tree"></i> Instrucciones para Enraizamiento:</h6>
+                    <ul class="mb-0 small">
                         <li>Mantener en oscuridad los primeros 5 días</li>
                         <li>Transferir a luz después de iniciado el enraizamiento</li>
                         <li>Enraizamiento en 2-3 semanas</li>
@@ -248,27 +215,111 @@ function calcularMedios() {
                 `;
             }
             
-            $('#infoAdicional').html(infoHTML);
+            $('#infoAdicional').html(infoHTML).show();
+            
+            // Habilitar botones de exportación
+            $('#pdfButtonMedios, #excelButtonMedios').prop('disabled', false);
         },
         error: function(xhr, status, error) {
-            console.error("Error en la petición Medios:", error, xhr.responseText);
-            $('#resultados').html('<div class="alert alert-danger">Error al calcular. Verifica la consola para detalles.</div>');
+            $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
         }
     });
 }
 
-// Calcular al cargar la página
+// Función para obtener los datos de la tabla dinámicamente para las exportaciones
+function obtenerDatosTablaMedios() {
+    let datos = [
+        ['Agua destilada', resultadosMedios.h2o_ml, 'ml'],
+        ['Sales MS', resultadosMedios.ms_g, 'g'],
+        ['Sacarosa', resultadosMedios.sacarosa_g, 'g'],
+        ['Agar', resultadosMedios.agar_g, 'g']
+    ];
+
+    if (datosInputsMedios.tipoMedio === 'co_culture') {
+        datos.push(['2,4-D (1 mg/ml)', resultadosMedios.d24_ul, 'µl']);
+        datos.push(['Kinetina (1 mg/ml)', resultadosMedios.kinetina_ul, 'µl']);
+    } else if (datosInputsMedios.tipoMedio === 'selection') {
+        datos.push(['Tzeatina (1 mg/ml)', resultadosMedios.tzeatina_ul, 'µl']);
+        datos.push(['Meropenem (50 mg/ml)', resultadosMedios.meropenem_ul, 'µl']);
+        datos.push(['Kanamicina (50 mg/ml)', resultadosMedios.kanamicina_ul, 'µl']);
+    } else if (datosInputsMedios.tipoMedio === 'rooting') {
+        datos.push(['IAA (1 mg/ml)', resultadosMedios.iaa_ul, 'µl']);
+        datos.push(['Meropenem (50 mg/ml)', resultadosMedios.meropenem_ul, 'µl']);
+        datos.push(['Kanamicina (50 mg/ml)', resultadosMedios.kanamicina_ul, 'µl']);
+    }
+    
+    return datos;
+}
+
+function exportarPDFMedios() {
+    if (!resultadosMedios) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    
+    doc.setFontSize(20);
+    doc.setTextColor(25, 135, 84); // Success green
+    doc.text('Receta - Medio de Cultivo', 105, 20, null, null, 'center');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha: ${resultadosMedios.fecha}`, 20, 35);
+    doc.text(`Tipo de Medio: ${datosInputsMedios.nombreMedio}`, 20, 42);
+    doc.text(`Volumen a Preparar: ${datosInputsMedios.volumenPreparar} ml`, 20, 49);
+    doc.text(`pH Recomendado: ${resultadosMedios.ph}`, 20, 56);
+    
+    const bodyData = obtenerDatosTablaMedios();
+
+    doc.autoTable({
+        startY: 65,
+        head: [['Componente', 'Cantidad', 'Unidad']],
+        body: bodyData,
+        theme: 'grid',
+        headStyles: { fillColor: [25, 135, 84] }
+    });
+    
+    // Generar nombre de archivo sin espacios
+    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml_${new Date().getTime()}.pdf`;
+    doc.save(nombreArchivo);
+}
+
+function exportarExcelMedios() {
+    if (!resultadosMedios) return;
+    
+    let csvRows = [];
+    csvRows.push(['Receta - Medio de Cultivo', '', '']);
+    csvRows.push(['Fecha', resultadosMedios.fecha, '']);
+    csvRows.push(['Tipo de Medio', datosInputsMedios.nombreMedio, '']);
+    csvRows.push(['Volumen a Preparar', datosInputsMedios.volumenPreparar, 'ml']);
+    csvRows.push(['pH Recomendado', resultadosMedios.ph, '']);
+    csvRows.push([]);
+    
+    csvRows.push(['Componente', 'Cantidad', 'Unidad']);
+    
+    const bodyData = obtenerDatosTablaMedios();
+    bodyData.forEach(row => {
+        csvRows.push(row);
+    });
+    
+    let csvContent = csvRows.map(e => e.join(",")).join("\n");
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    
+    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml_${new Date().getTime()}.csv`;
+    link.setAttribute("download", nombreArchivo);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 $(document).ready(function() {
     calcularMedios();
 });
 
-// Recalcular cuando cambie el tipo de medio
-$('#tipo_medio').change(function() {
-    calcularMedios();
-});
-
-// Recalcular cuando cambie el volumen
-$('#volumen_preparar').on('input', function() {
+// Recalcular automático
+$('#tipo_medio, #volumen_preparar').on('change keyup', function() {
     calcularMedios();
 });
 </script>
@@ -284,23 +335,6 @@ $('#volumen_preparar').on('input', function() {
 .alert-info {
     background-color: #e8f4f8;
     border-color: #b6e0f5;
-}
-
-/* Colores por tipo de medio */
-.medio-germinacion {
-    border-color: #28a745;
-}
-
-.medio-co-culture {
-    border-color: #17a2b8;
-}
-
-.medio-selection {
-    border-color: #ffc107;
-}
-
-.medio-rooting {
-    border-color: #6f42c1;
 }
 </style>
 {% endblock %}
