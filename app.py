@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import math
 import traceback  # Agrega esto al inicio, junto con los otros imports
+import os
 
 app = Flask(__name__)
 
@@ -530,4 +531,7 @@ def recetas_page():
 # EJECUCIÓN
 # ============================
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Render nos dará un puerto dinámico, si no hay, usamos el 5000 por defecto
+    port = int(os.environ.get('PORT', 5000))
+    # host='0.0.0.0' es la clave para que funcione en internet
+    app.run(host='0.0.0.0', port=port, debug=False)
