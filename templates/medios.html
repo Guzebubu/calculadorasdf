@@ -1,17 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row">
+<div class="row fade-in">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-flower1"></i> Medios de Cultivo - Cálculo</h5>
             </div>
             <div class="card-body">
                 <form id="mediosForm">
                     <div class="mb-3">
-                        <label for="tipo_medio" class="form-label"><i class="bi bi-funnel"></i> Tipo de Medio:</label>
-                        <select class="form-control" id="tipo_medio">
+                        <label for="tipo_medio" class="form-label fw-bold"><i class="bi bi-funnel"></i> Tipo de Medio:</label>
+                        <select class="form-select border-primary" id="tipo_medio">
                             <option value="germinacion">Medio de Germinación</option>
                             <option value="co_culture">Medio de Co-cultivo</option>
                             <option value="selection">Medio de Selección</option>
@@ -20,54 +20,54 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="volumen_preparar" class="form-label"><i class="bi bi-droplet"></i> Volumen a Preparar (ml):</label>
-                        <input type="number" class="form-control" id="volumen_preparar" value="1000" step="10">
+                        <label for="volumen_preparar" class="form-label fw-bold"><i class="bi bi-droplet"></i> Volumen a Preparar (ml):</label>
+                        <input type="number" class="form-control text-center fs-5" id="volumen_preparar" value="1000" step="10">
                         <div class="form-text">Volumen total del medio en mililitros</div>
                     </div>
                     
-                    <button type="button" class="btn btn-calculate w-100" onclick="calcularMedios()">
-                        <i class="bi bi-calculator"></i> Calcular
+                    <button type="button" class="btn btn-primary w-100 shadow-sm fs-5" onclick="calcularMedios()">
+                        <i class="bi bi-calculator"></i> Calcular Receta
                     </button>
                 </form>
             </div>
         </div>
         
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Descripción de Medios</h6>
+        <div class="card shadow-sm mt-4 d-none d-md-block">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 text-muted"><i class="bi bi-info-circle"></i> Descripción de Medios</h6>
             </div>
-            <div class="card-body">
-                <p><strong>Germinación:</strong> Para germinación de semillas estériles.</p>
-                <p><strong>Co-cultivo:</strong> Para co-cultivo con Agrobacterium.</p>
-                <p><strong>Selección:</strong> Contiene antibióticos para selección.</p>
-                <p><strong>Enraizamiento:</strong> Para inducción de raíces en explantes.</p>
+            <div class="card-body text-muted small">
+                <p class="mb-1"><i class="bi bi-check2 text-success"></i> <strong>Germinación:</strong> Para semillas estériles.</p>
+                <p class="mb-1"><i class="bi bi-check2 text-success"></i> <strong>Co-cultivo:</strong> Para uso con Agrobacterium.</p>
+                <p class="mb-1"><i class="bi bi-check2 text-success"></i> <strong>Selección:</strong> Contiene antibióticos.</p>
+                <p class="mb-0"><i class="bi bi-check2 text-success"></i> <strong>Enraizamiento:</strong> Para inducción de raíces.</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="card">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-success d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados</h5>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-danger btn-sm text-white" onclick="..." id="...">
+                    <button type="button" class="btn btn-danger btn-sm text-white shadow-sm" onclick="exportarPDFMedios()" id="pdfButtonMedios" disabled>
                       <i class="bi bi-file-pdf me-1"></i> PDF
-                      </button>
-                     <button type="button" class="btn btn-success btn-sm text-white" onclick="..." id="...">
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm text-white shadow-sm" onclick="exportarExcelMedios()" id="excelButtonMedios" disabled>
                        <i class="bi bi-file-excel me-1"></i> Excel
-                           </button>
+                    </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div id="resultados" class="result-card p-3 mb-3">
-                    <p class="text-muted mb-0"><i class="bi bi-arrow-clockwise"></i> Seleccione el tipo de medio y haga clic en "Calcular"</p>
+            <div class="card-body d-flex flex-column">
+                <div id="resultados" class="result-card p-4 mb-3 text-center bg-light border rounded h-100 d-flex flex-column justify-content-center">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-left-circle fs-4 d-block mb-2"></i> Seleccione el tipo de medio y haga clic en "Calcular Receta"</p>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="tablaMedios">
+                <div class="table-responsive" id="contenedorTablaMedios" style="display: none;">
+                    <table class="table table-bordered table-striped table-hover align-middle text-center" id="tablaMedios">
                         <thead class="table-dark">
                             <tr>
-                                <th><i class="bi bi-grid"></i> Componente</th>
+                                <th class="text-start"><i class="bi bi-grid"></i> Componente</th>
                                 <th><i class="bi bi-eyedropper"></i> Cantidad</th>
                                 <th>Unidad</th>
                             </tr>
@@ -77,8 +77,8 @@
                     </table>
                 </div>
 
-                <div class="mt-4">
-                    <div id="infoAdicional" class="alert alert-info" style="display: none;">
+                <div class="mt-2">
+                    <div id="infoAdicional" class="alert alert-info shadow-sm" style="display: none;">
                         </div>
                 </div>
             </div>
@@ -106,12 +106,13 @@ function calcularMedios() {
 
     // Validación
     if (!volumenPreparar || volumenPreparar <= 0) {
-        $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Ingrese un volumen válido (mayor a 0 ml)</div>');
+        alert("Ingrese un volumen válido mayor a 0 ml");
         return;
     }
 
-    // Mostrar loading y deshabilitar botones
-    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+    // Ocultar resultados y mostrar loading
+    $('#contenedorTablaMedios, #infoAdicional').hide();
+    $('#resultados').show().html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando receta...</p>');
     $('#pdfButtonMedios, #excelButtonMedios').prop('disabled', true);
 
     $.ajax({
@@ -137,39 +138,38 @@ function calcularMedios() {
                 volumenPreparar: parseFloat(volumenPreparar)
             };
 
-            // Mostrar resumen
+            // Mostrar resumen superior
             $('#resultados').html(`
-                <h6><i class="bi bi-check-circle text-success"></i> Resumen de Preparación</h6>
-                <p class="mb-1"><strong>Tipo de medio:</strong> <span class="badge bg-primary">${datosInputsMedios.nombreMedio}</span></p>
-                <p class="mb-1"><strong>Volumen total:</strong> <span class="badge bg-success">${response.h2o_ml} ml</span></p>
-                <p class="mb-0"><strong>pH recomendado:</strong> <span class="badge bg-secondary">${response.ph}</span></p>
+                <h6 class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Resumen de Preparación</h6>
+                <p class="mb-1"><strong>Medio:</strong> <span class="badge bg-primary fs-6">${datosInputsMedios.nombreMedio}</span></p>
+                <p class="mb-1"><strong>Volumen:</strong> <span class="badge bg-success fs-6">${response.h2o_ml} ml</span></p>
+                <p class="mb-0 text-muted small"><strong>pH a ajustar:</strong> ${response.ph}</p>
             `);
 
             // Actualizar tabla de componentes
             let tablaHTML = `
-                <tr><td>Agua destilada</td><td>${response.h2o_ml}</td><td>ml</td></tr>
-                <tr><td>Sales MS</td><td>${response.ms_g}</td><td>g</td></tr>
-                <tr><td>Sacarosa</td><td>${response.sacarosa_g}</td><td>g</td></tr>
-                <tr><td>Agar</td><td>${response.agar_g}</td><td>g</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">Agua destilada</td><td class="text-primary fw-bold fs-5">${response.h2o_ml}</td><td>ml</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">Sales MS</td><td class="text-primary fw-bold fs-5">${response.ms_g}</td><td>g</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">Sacarosa</td><td class="text-primary fw-bold fs-5">${response.sacarosa_g}</td><td>g</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">Agar</td><td class="text-primary fw-bold fs-5">${response.agar_g}</td><td>g</td></tr>
             `;
             
-            // Componentes específicos por tipo de medio
             if (tipoMedio === 'co_culture') {
                 tablaHTML += `
-                    <tr><td>2,4-D (1 mg/ml)</td><td>${response.d24_ul}</td><td>µl</td></tr>
-                    <tr><td>Kinetina (1 mg/ml)</td><td>${response.kinetina_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">2,4-D (1 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.d24_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Kinetina (1 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.kinetina_ul}</td><td>µl</td></tr>
                 `;
             } else if (tipoMedio === 'selection') {
                 tablaHTML += `
-                    <tr><td>Tzeatina (1 mg/ml)</td><td>${response.tzeatina_ul}</td><td>µl</td></tr>
-                    <tr><td>Meropenem (50 mg/ml)</td><td>${response.meropenem_ul}</td><td>µl</td></tr>
-                    <tr><td>Kanamicina (50 mg/ml)</td><td>${response.kanamicina_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Tzeatina (1 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.tzeatina_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Meropenem (50 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.meropenem_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Kanamicina (50 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.kanamicina_ul}</td><td>µl</td></tr>
                 `;
             } else if (tipoMedio === 'rooting') {
                 tablaHTML += `
-                    <tr><td>IAA (1 mg/ml)</td><td>${response.iaa_ul}</td><td>µl</td></tr>
-                    <tr><td>Meropenem (50 mg/ml)</td><td>${response.meropenem_ul}</td><td>µl</td></tr>
-                    <tr><td>Kanamicina (50 mg/ml)</td><td>${response.kanamicina_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">IAA (1 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.iaa_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Meropenem (50 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.meropenem_ul}</td><td>µl</td></tr>
+                    <tr><td class="text-start fw-bold text-secondary">Kanamicina (50 mg/ml)</td><td class="text-danger fw-bold fs-5">${response.kanamicina_ul}</td><td>µl</td></tr>
                 `;
             }
             
@@ -178,55 +178,52 @@ function calcularMedios() {
             // Actualizar información adicional
             let infoHTML = '';
             if (tipoMedio === 'germinacion') {
-                infoHTML = `
-                    <h6 class="alert-heading"><i class="bi bi-seedling"></i> Instrucciones para Germinación:</h6>
-                    <ul class="mb-0 small">
-                        <li>Esterilizar semillas antes de sembrar</li>
-                        <li>Mantener a 25°C con fotoperiodo 16/8 h</li>
-                        <li>Germinación en 7-10 días</li>
-                    </ul>
-                `;
+                infoHTML = `<h6 class="alert-heading fw-bold"><i class="bi bi-seedling"></i> Instrucciones para Germinación:</h6>
+                    <ul class="mb-0 small text-dark">
+                        <li>Esterilizar semillas antes de sembrar.</li>
+                        <li>Mantener a 25°C con fotoperiodo 16/8 h.</li>
+                        <li>Germinación esperada en 7-10 días.</li>
+                    </ul>`;
             } else if (tipoMedio === 'co_culture') {
-                infoHTML = `
-                    <h6 class="alert-heading"><i class="bi bi-bug"></i> Instrucciones para Co-cultivo:</h6>
-                    <ul class="mb-0 small">
-                        <li>Usar Agrobacterium en fase logarítmica (OD600 = 0.6-0.8)</li>
-                        <li>Co-cultivar por 48-72 horas en oscuridad</li>
-                        <li>Lavar explantes con agua estéril + antibiótico después</li>
-                    </ul>
-                `;
+                infoHTML = `<h6 class="alert-heading fw-bold"><i class="bi bi-bug"></i> Instrucciones para Co-cultivo:</h6>
+                    <ul class="mb-0 small text-dark">
+                        <li>Mantener en obscuridad por 48hrs</li>
+                        <li>Prefentemente mantener a 25°C</li>
+                        <li>Cambiar a medio de selección a las 48hrs</li>
+                    </ul>`;
             } else if (tipoMedio === 'selection') {
-                infoHTML = `
-                    <h6 class="alert-heading"><i class="bi bi-filter-circle"></i> Instrucciones para Selección:</h6>
-                    <ul class="mb-0 small">
-                        <li>Cambiar medio cada 2 semanas</li>
-                        <li>Mantener en oscuridad los primeros 7 días</li>
-                        <li>Selección durante 4-6 semanas</li>
-                    </ul>
-                `;
+                infoHTML = `<h6 class="alert-heading fw-bold"><i class="bi bi-filter-circle"></i> Instrucciones para Selección:</h6>
+                    <ul class="mb-0 small text-dark">
+                        <li>Selecciona los mejores explnates</li>
+                        <li>Cambiar medio cada 2 semanas.</li>
+                        <li>Mantener a 25°C con fotoperiodo 16/8 h.</li>
+                        <li>Selección hasta ver regeneración de plantas.</li>
+                        <li>Transferir a medio de enraizamiento.</li>
+                    </ul>`;
             } else if (tipoMedio === 'rooting') {
-                infoHTML = `
-                    <h6 class="alert-heading"><i class="bi bi-tree"></i> Instrucciones para Enraizamiento:</h6>
-                    <ul class="mb-0 small">
-                        <li>Mantener en oscuridad los primeros 5 días</li>
-                        <li>Transferir a luz después de iniciado el enraizamiento</li>
-                        <li>Enraizamiento en 2-3 semanas</li>
-                    </ul>
-                `;
+                infoHTML = `<h6 class="alert-heading fw-bold"><i class="bi bi-tree"></i> Instrucciones para Enraizamiento:</h6>
+                    <ul class="mb-0 small text-dark">
+                        <li>Selecciona los mejores explnates (deben tener forma de planta).</li>
+                        <li>Mantener a 25°C con fotoperiodo 16/8 h.</li>
+                        <li>Enraizamiento esperado de 1-3 semanas.</li>
+                    </ul>`;
             }
             
-            $('#infoAdicional').html(infoHTML).show();
+            $('#infoAdicional').html(infoHTML);
+            
+            // Mostrar los contenedores
+            $('#contenedorTablaMedios, #infoAdicional').fadeIn();
             
             // Habilitar botones de exportación
             $('#pdfButtonMedios, #excelButtonMedios').prop('disabled', false);
         },
-        error: function(xhr, status, error) {
+        error: function() {
             $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
         }
     });
 }
 
-// Función para obtener los datos de la tabla dinámicamente para las exportaciones
+// Función auxiliar para exportaciones
 function obtenerDatosTablaMedios() {
     let datos = [
         ['Agua destilada', resultadosMedios.h2o_ml, 'ml'],
@@ -247,7 +244,6 @@ function obtenerDatosTablaMedios() {
         datos.push(['Meropenem (50 mg/ml)', resultadosMedios.meropenem_ul, 'µl']);
         datos.push(['Kanamicina (50 mg/ml)', resultadosMedios.kanamicina_ul, 'µl']);
     }
-    
     return datos;
 }
 
@@ -258,7 +254,7 @@ function exportarPDFMedios() {
     const doc = new jsPDF('p', 'mm', 'a4');
     
     doc.setFontSize(20);
-    doc.setTextColor(25, 135, 84); // Success green
+    doc.setTextColor(25, 135, 84); // Verde éxito
     doc.text('Receta - Medio de Cultivo', 105, 20, null, null, 'center');
     
     doc.setFontSize(11);
@@ -268,18 +264,63 @@ function exportarPDFMedios() {
     doc.text(`Volumen a Preparar: ${datosInputsMedios.volumenPreparar} ml`, 20, 49);
     doc.text(`pH Recomendado: ${resultadosMedios.ph}`, 20, 56);
     
-    const bodyData = obtenerDatosTablaMedios();
+    // Dibujo de tabla manual (Más seguro)
+    const startY = 65;
+    doc.setFillColor(25, 135, 84);
+    doc.rect(20, startY, 170, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('Componente', 25, startY + 6);
+    doc.text('Cantidad', 120, startY + 6);
+    doc.text('Unidad', 150, startY + 6);
 
-    doc.autoTable({
-        startY: 65,
-        head: [['Componente', 'Cantidad', 'Unidad']],
-        body: bodyData,
-        theme: 'grid',
-        headStyles: { fillColor: [25, 135, 84] }
+    let yPos = startY + 14;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+
+    const bodyData = obtenerDatosTablaMedios();
+    bodyData.forEach(row => {
+        doc.text(String(row[0]), 25, yPos);
+        doc.setFont(undefined, 'bold');
+        doc.text(String(row[1]), 120, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(String(row[2]), 150, yPos);
+        yPos += 8;
     });
+
+    // Añadir Instrucciones al final del PDF
+    yPos += 10;
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(13, 110, 253); // Azul
+    doc.text('Notas / Instrucciones:', 20, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(50, 50, 50);
     
-    // Generar nombre de archivo sin espacios
-    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml_${new Date().getTime()}.pdf`;
+    // Extraer texto limpio de las instrucciones basado en el HTML
+    const instruccionesTexto = $('#infoAdicional').text().replace(/\s+/g, ' ').trim();
+    const splitText = doc.splitTextToSize(instruccionesTexto, 170);
+    doc.text(splitText, 20, yPos + 6);
+
+    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml.pdf`;
+
+     // ==========================================
+    // 🖋️ SECCIÓN DE FIRMA DEL LABORATORIO
+    // ==========================================
+    yPos += 25; // Le damos un respiro de 25mm al último texto
+
+    // Sistema de seguridad: Si ya no cabe en la hoja, hacemos una nueva
+    if (yPos > 270) {
+        doc.addPage();
+        yPos = 30; 
+    }
+
+            
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text("Generado por MCGGUS Lab SDF", 105, yPos + 10, null, null, 'center');
+    // ==========================================
+
+
     doc.save(nombreArchivo);
 }
 
@@ -293,7 +334,6 @@ function exportarExcelMedios() {
     csvRows.push(['Volumen a Preparar', datosInputsMedios.volumenPreparar, 'ml']);
     csvRows.push(['pH Recomendado', resultadosMedios.ph, '']);
     csvRows.push([]);
-    
     csvRows.push(['Componente', 'Cantidad', 'Unidad']);
     
     const bodyData = obtenerDatosTablaMedios();
@@ -306,7 +346,7 @@ function exportarExcelMedios() {
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     
-    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml_${new Date().getTime()}.csv`;
+    const nombreArchivo = `Medio_${datosInputsMedios.tipoMedio}_${datosInputsMedios.volumenPreparar}ml.csv`;
     link.setAttribute("download", nombreArchivo);
     
     document.body.appendChild(link);
@@ -315,26 +355,18 @@ function exportarExcelMedios() {
 }
 
 $(document).ready(function() {
-    calcularMedios();
-});
-
-// Recalcular automático
-$('#tipo_medio, #volumen_preparar').on('change keyup', function() {
-    calcularMedios();
+    // Pequeño retraso al iniciar para no cargar el servidor
+    setTimeout(calcularMedios, 500); 
 });
 </script>
 
 <style>
-/* Estilos específicos para Medios */
 .result-card {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #28a745;
+    border-left: 4px solid #198754 !important;
 }
-
 .alert-info {
     background-color: #e8f4f8;
-    border-color: #b6e0f5;
+    border-left: 4px solid #0dcaf0;
 }
 </style>
 {% endblock %}
