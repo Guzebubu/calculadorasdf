@@ -1,17 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row">
+<div class="row fade-in">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Nivel 2 (Lv2) - Cálculo de Ensamblaje</h5>
             </div>
             <div class="card-body">
                 <form id="lv2Form">
                     <div class="mb-3">
-                        <label for="num_guias" class="form-label"><i class="bi bi-list-ol"></i> Número de Guías:</label>
-                        <select class="form-control" id="num_guias">
+                        <label for="num_guias" class="form-label fw-bold"><i class="bi bi-list-ol"></i> Número de Guías:</label>
+                        <select class="form-select border-primary" id="num_guias">
                             <option value="1">1 Guía</option>
                             <option value="2">2 Guías</option>
                             <option value="3">3 Guías</option>
@@ -21,21 +21,21 @@
                         </select>
                     </div>
                     
-                    <h6 class="mt-4 text-muted"><i class="bi bi-bezier"></i> Parámetros de Plásmidos</h6>
-                    <div class="row">
-                        <div class="col-6 mb-3">
+                    <h6 class="mt-4 text-primary fw-bold border-bottom pb-2"><i class="bi bi-bezier"></i> Parámetros de Plásmidos Base</h6>
+                    <div class="row bg-light p-2 rounded mb-3">
+                        <div class="col-6 mb-2">
                             <label for="conc_plasmid1" class="form-label small mb-0">Conc. pICH47732 (ng/µl):</label>
                             <input type="number" class="form-control form-control-sm" id="conc_plasmid1" value="132.2" step="0.1">
                         </div>
-                        <div class="col-6 mb-3">
+                        <div class="col-6 mb-2">
                             <label for="pb_plasmid1" class="form-label small mb-0">Tamaño pICH47732 (pb):</label>
                             <input type="number" class="form-control form-control-sm" id="pb_plasmid1" value="6234" step="1">
                         </div>
-                        <div class="col-6 mb-3">
+                        <div class="col-6 mb-2">
                             <label for="conc_plasmid2" class="form-label small mb-0">Conc. pICH47742 (ng/µl):</label>
                             <input type="number" class="form-control form-control-sm" id="conc_plasmid2" value="137" step="0.1">
                         </div>
-                        <div class="col-6 mb-3">
+                        <div class="col-6 mb-2">
                             <label for="pb_plasmid2" class="form-label small mb-0">Tamaño pICH47742 (pb):</label>
                             <input type="number" class="form-control form-control-sm" id="pb_plasmid2" value="9623" step="1">
                         </div>
@@ -44,7 +44,7 @@
                     <div id="contenedor-guias">
                         </div>
                     
-                    <button type="button" class="btn btn-calculate w-100 mt-3" onclick="calcularLv2()">
+                    <button type="button" class="btn btn-primary w-100 mt-4 shadow-sm fs-5" onclick="calcularLv2()">
                         <i class="bi bi-calculator"></i> Calcular Ensamblaje
                     </button>
                 </form>
@@ -53,29 +53,29 @@
     </div>
 
     <div class="col-md-6">
-        <div class="card">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-success d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados de Ensamblaje</h5>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-danger btn-sm text-white" onclick="..." id="...">
+                    <button type="button" class="btn btn-danger btn-sm text-white shadow-sm" onclick="exportarPDFLv2()" id="pdfButtonLv2" disabled>
                       <i class="bi bi-file-pdf me-1"></i> PDF
-                     </button>
-                     <button type="button" class="btn btn-success btn-sm text-white" onclick="..." id="...">
-                         <i class="bi bi-file-excel me-1"></i> Excel
-                         </button>
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm text-white shadow-sm" onclick="exportarExcelLv2()" id="excelButtonLv2" disabled>
+                      <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div id="resultados" class="result-card p-3 mb-3">
-                    <p class="text-muted mb-0"><i class="bi bi-arrow-clockwise"></i> Complete el formulario y haga clic en "Calcular"</p>
+            <div class="card-body d-flex flex-column">
+                <div id="resultados" class="result-card p-4 mb-3 text-center bg-light border rounded h-100 d-flex flex-column justify-content-center">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-left-circle fs-4 d-block mb-2"></i> Ajuste los parámetros y haga clic en "Calcular Ensamblaje"</p>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="tablaLv2">
+                <div class="table-responsive" id="contenedorTablaLv2" style="display: none;">
+                    <table class="table table-bordered table-striped table-hover align-middle text-center" id="tablaLv2">
                         <thead class="table-dark">
                             <tr>
-                                <th><i class="bi bi-grid"></i> Componente</th>
-                                <th><i class="bi bi-eyedropper"></i> Volumen (µl)</th>
+                                <th class="text-start"><i class="bi bi-grid"></i> Componente</th>
+                                <th class="table-success text-dark"><i class="bi bi-eyedropper"></i> Volumen (µl)</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
@@ -84,15 +84,15 @@
                 </div>
 
                 <div id="infoAdicionalLv2" class="mt-4" style="display: none;">
-                    <h6><i class="bi bi-info-circle"></i> Concentraciones de Trabajo (40 fmol)</h6>
-                    <table class="table table-sm table-bordered">
+                    <h6 class="text-muted border-bottom pb-2"><i class="bi bi-info-circle"></i> Concentraciones de Trabajo (40 fmol)</h6>
+                    <table class="table table-sm table-borderless small">
                         <tr>
-                            <td>pICH47732:</td>
-                            <td id="fmol_plasmid1" class="text-primary fw-bold">-</td>
+                            <td class="text-muted">pICH47732:</td>
+                            <td id="fmol_plasmid1" class="text-primary fw-bold text-end">-</td>
                         </tr>
                         <tr>
-                            <td>pICH47742:</td>
-                            <td id="fmol_plasmid2" class="text-primary fw-bold">-</td>
+                            <td class="text-muted">pICH47742:</td>
+                            <td id="fmol_plasmid2" class="text-primary fw-bold text-end">-</td>
                         </tr>
                         <tbody id="fmol_guias_container"></tbody>
                     </table>
@@ -108,30 +108,27 @@
 let resultadosLv2 = null;
 let datosInputs = null;
 
-// Función para dibujar las cajas de guías dependiendo del número
+// Función para dibujar las cajas de guías
 function generarCajasGuias() {
     const numGuias = parseInt($('#num_guias').val());
     let html = '';
     
     for(let i = 1; i <= numGuias; i++) {
         html += `
-        <h6 class="mt-3 text-muted border-top pt-2"><i class="bi bi-cursor"></i> Parámetros de Guía ${i}</h6>
+        <h6 class="mt-3 text-secondary border-top pt-2"><i class="bi bi-cursor"></i> Parámetros de Guía ${i}</h6>
         <div class="row">
             <div class="col-6 mb-2">
-                <label class="form-label small mb-0">Conc. Guía ${i} (ng/µl):</label>
+                <label class="form-label small mb-0 text-muted">Conc. Guía ${i} (ng/µl):</label>
                 <input type="number" class="form-control form-control-sm input-conc-guia" data-id="${i}" value="180.2" step="0.1">
             </div>
             <div class="col-6 mb-2">
-                <label class="form-label small mb-0">Tamaño Guía ${i} (pb):</label>
+                <label class="form-label small mb-0 text-muted">Tamaño Guía ${i} (pb):</label>
                 <input type="number" class="form-control form-control-sm input-pb-guia" data-id="${i}" value="4588" step="1">
             </div>
         </div>`;
     }
     
     $('#contenedor-guias').html(html);
-    
-    // Volver a conectar el evento para que calcule si el usuario edita
-    $('.input-conc-guia, .input-pb-guia').on('change keyup', calcularLv2);
 }
 
 function calcularLv2() {
@@ -141,7 +138,7 @@ function calcularLv2() {
     const concPlasmid2 = $('#conc_plasmid2').val();
     const pbPlasmid2 = $('#pb_plasmid2').val();
     
-    // Recolectar datos de TODAS las guías en un arreglo
+    // Recolectar datos de TODAS las guías
     let guiasData = [];
     for(let i = 1; i <= numGuias; i++) {
         guiasData.push({
@@ -150,7 +147,9 @@ function calcularLv2() {
         });
     }
 
-    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando ensamblaje...</p></div>');
+    // Mostrar spinner y ocultar resultados anteriores
+    $('#contenedorTablaLv2, #infoAdicionalLv2').hide();
+    $('#resultados').addClass('d-flex').show().html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando ensamblaje...</p>');
     $('#pdfButtonLv2, #excelButtonLv2').prop('disabled', true);
 
     $.ajax({
@@ -171,39 +170,32 @@ function calcularLv2() {
                 return;
             }
 
-            // Guardar para exportación
             resultadosLv2 = response;
             resultadosLv2.fecha = new Date().toLocaleString('es-ES');
             
-            // Guardamos los inputs de las guías también para el PDF
             datosInputs = {
                 concPlasmid1, pbPlasmid1, concPlasmid2, pbPlasmid2,
                 guias: guiasData
             };
 
-            $('#resultados').html(`
-                <h6><i class="bi bi-check-circle text-success"></i> Resumen de Ensamblaje</h6>
-                <p class="mb-1"><strong>Número de guías:</strong> <span class="badge bg-primary">${response.num_guias}</span></p>
-                <p class="mb-0"><strong>Volumen Total:</strong> <span class="badge bg-success">${response.volumen_total} µl</span></p>
-            `);
-
-            // Tabla de componentes principal
+            $('#resultados').removeClass('d-flex').hide();
+            
+            // Tabla de componentes
             let tablaHTML = `
-                <tr><td>Agua</td><td>${response.agua.toFixed(2)}</td></tr>
-                <tr><td>10x T4 ligasa Buffer</td><td>${response.buffer_t4.toFixed(2)}</td></tr>
-                <tr><td>BPII</td><td>${response.bpii.toFixed(2)}</td></tr>
-                <tr><td>T4 ligasa</td><td>${response.t4_ligasa.toFixed(2)}</td></tr>
-                <tr><td>pICH47732 (Plasmid 1)</td><td>${response.plasmid1.toFixed(2)}</td></tr>
-                <tr><td>pICH47742 (Plasmid 2)</td><td>${response.plasmid2.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">Agua</td><td class="fw-bold fs-5 text-primary">${response.agua.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">10x T4 ligasa Buffer</td><td class="fw-bold fs-5 text-primary">${response.buffer_t4.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">BPII</td><td class="fw-bold fs-5 text-primary">${response.bpii.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">T4 ligasa</td><td class="fw-bold fs-5 text-primary">${response.t4_ligasa.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">pICH47732 (Plasmid 1)</td><td class="fw-bold fs-5 text-primary">${response.plasmid1.toFixed(2)}</td></tr>
+                <tr><td class="text-start fw-bold text-secondary">pICH47742 (Plasmid 2)</td><td class="fw-bold fs-5 text-primary">${response.plasmid2.toFixed(2)}</td></tr>
             `;
             
-            // Agregar los volúmenes de las guías independientes
             for (let i = 1; i <= response.num_guias; i++) {
                 let volGuia = response[`guia${i}_vol`];
-                tablaHTML += `<tr><td>Guía ${i}</td><td>${parseFloat(volGuia).toFixed(2)}</td></tr>`;
+                tablaHTML += `<tr><td class="text-start fw-bold text-secondary">Guía ${i}</td><td class="fw-bold fs-5 text-primary">${parseFloat(volGuia).toFixed(2)}</td></tr>`;
             }
             
-            tablaHTML += `<tr class="table-success"><td><strong>TOTAL FINAL</strong></td><td><strong>${response.volumen_total.toFixed(2)}</strong></td></tr>`;
+            tablaHTML += `<tr class="table-primary"><td class="text-start"><strong>VOLUMEN FINAL TOTAL</strong></td><td><strong>${response.volumen_total.toFixed(2)}</strong></td></tr>`;
             $('#tablaResultados').html(tablaHTML);
 
             // Información de fmoles
@@ -214,18 +206,18 @@ function calcularLv2() {
             for (let i = 1; i <= response.num_guias; i++) {
                 fmolesHtml += `
                     <tr>
-                        <td>Guía ${i}:</td>
-                        <td class="text-primary fw-bold">${response.fmol_guias[`guia${i}`]} fmol/µl</td>
+                        <td class="text-muted">Guía ${i}:</td>
+                        <td class="text-primary fw-bold text-end">${response.fmol_guias[`guia${i}`]} fmol/µl</td>
                     </tr>
                 `;
             }
             $('#fmol_guias_container').html(fmolesHtml);
 
-            $('#infoAdicionalLv2').show();
+            $('#contenedorTablaLv2, #infoAdicionalLv2').fadeIn();
             $('#pdfButtonLv2, #excelButtonLv2').prop('disabled', false);
         },
-        error: function(xhr, status, error) {
-            $('#resultados').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
+        error: function() {
+            $('#resultados').removeClass('d-flex').show().html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
         }
     });
 }
@@ -237,7 +229,7 @@ function exportarPDFLv2() {
     const doc = new jsPDF('p', 'mm', 'a4');
     
     doc.setFontSize(20);
-    doc.setTextColor(25, 135, 84); // Success green
+    doc.setTextColor(25, 135, 84); // Verde éxito
     doc.text('Reporte de Ensamblaje Lv2', 105, 20, null, null, 'center');
     
     doc.setFontSize(11);
@@ -245,22 +237,36 @@ function exportarPDFLv2() {
     doc.text(`Fecha: ${resultadosLv2.fecha}`, 20, 35);
     doc.text(`Número de Guías: ${resultadosLv2.num_guias}`, 20, 42);
     
-    // Información de Plásmidos
     doc.setFontSize(12);
+    doc.setTextColor(13, 110, 253);
     doc.text('Parámetros de Entrada:', 20, 55);
+    
     doc.setFontSize(10);
+    doc.setTextColor(50, 50, 50);
     doc.text(`- pICH47732: ${datosInputs.concPlasmid1} ng/µl | ${datosInputs.pbPlasmid1} pb`, 25, 62);
     doc.text(`- pICH47742: ${datosInputs.concPlasmid2} ng/µl | ${datosInputs.pbPlasmid2} pb`, 25, 69);
     
-    let y = 76;
+    let yPos = 76;
     for (let i = 0; i < datosInputs.guias.length; i++) {
-        doc.text(`- Guía ${i+1}: ${datosInputs.guias[i].conc} ng/µl | ${datosInputs.guias[i].pb} pb`, 25, y);
-        y += 7;
+        doc.text(`- Guía ${i+1}: ${datosInputs.guias[i].conc} ng/µl | ${datosInputs.guias[i].pb} pb`, 25, yPos);
+        yPos += 7;
     }
 
-    // Preparar datos de la tabla
+    // Dibujo de Tabla Manual
+    yPos += 5;
+    doc.setFillColor(33, 37, 41);
+    doc.rect(20, yPos, 170, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('Componente', 25, yPos + 6);
+    doc.text('Volumen (µl)', 150, yPos + 6);
+
+    yPos += 14;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+
     let bodyData = [
-        ['Agua', resultadosLv2.agua.toFixed(2)],
+        ['Agua libre de nucleasas', resultadosLv2.agua.toFixed(2)],
         ['10x T4 ligasa Buffer', resultadosLv2.buffer_t4.toFixed(2)],
         ['BPII', resultadosLv2.bpii.toFixed(2)],
         ['T4 ligasa', resultadosLv2.t4_ligasa.toFixed(2)],
@@ -272,16 +278,43 @@ function exportarPDFLv2() {
         bodyData.push([`Guía ${i}`, resultadosLv2[`guia${i}_vol`].toFixed(2)]);
     }
 
-    doc.autoTable({
-        startY: y + 5,
-        head: [['Componente', 'Volumen (µl)']],
-        body: bodyData,
-        theme: 'grid',
-        headStyles: { fillColor: [25, 135, 84] },
-        foot: [['TOTAL FINAL', resultadosLv2.volumen_total.toFixed(2)]],
-        footStyles: { fillColor: [230, 245, 233], textColor: [0,0,0], fontStyle: 'bold' }
+    bodyData.forEach(row => {
+        doc.text(String(row[0]), 25, yPos);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(25, 135, 84); // Verde Volúmenes
+        doc.text(String(row[1]), 150, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        yPos += 8;
     });
+
+    // Separador Total
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 2, 190, yPos + 2);
+    yPos += 10;
     
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(13, 110, 253);
+    doc.text('VOLUMEN FINAL TOTAL:', 25, yPos);
+    doc.text(String(resultadosLv2.volumen_total.toFixed(2)), 150, yPos);
+    doc.setFont(undefined, 'normal');
+
+    // ==========================================
+    // 🖋️ SECCIÓN DE FIRMA DEL LABORATORIO
+    // ==========================================
+    yPos += 25; 
+
+    if (yPos > 270) {
+        doc.addPage();
+        yPos = 30; 
+    }
+
+       
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text("Generado por MCGGUS Lab SDF", 105, yPos + 10, null, null, 'center');
+    // ==========================================
+       
     doc.save(`ensamblaje_lv2_${new Date().getTime()}.pdf`);
 }
 
@@ -304,7 +337,7 @@ function exportarExcelLv2() {
     
     csvRows.push(['Resultados del Cálculo', '']);
     csvRows.push(['Componente', 'Volumen (ul)']);
-    csvRows.push(['Agua', resultadosLv2.agua.toFixed(2)]);
+    csvRows.push(['Agua libre de nucleasas', resultadosLv2.agua.toFixed(2)]);
     csvRows.push(['10x T4 ligasa Buffer', resultadosLv2.buffer_t4.toFixed(2)]);
     csvRows.push(['BPII', resultadosLv2.bpii.toFixed(2)]);
     csvRows.push(['T4 ligasa', resultadosLv2.t4_ligasa.toFixed(2)]);
@@ -315,7 +348,7 @@ function exportarExcelLv2() {
         csvRows.push([`Guia ${i}`, resultadosLv2[`guia${i}_vol`].toFixed(2)]);
     }
     
-    csvRows.push(['TOTAL', resultadosLv2.volumen_total.toFixed(2)]);
+    csvRows.push(['VOLUMEN FINAL TOTAL', resultadosLv2.volumen_total.toFixed(2)]);
     
     let csvContent = csvRows.map(e => e.join(",")).join("\n");
     const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
@@ -328,18 +361,15 @@ function exportarExcelLv2() {
 }
 
 $(document).ready(function() {
-    // Generar la primera guía al cargar
     generarCajasGuias();
-    calcularLv2();
     
-    // Escuchar el cambio en el selector de número de guías
+    // Retraso para el primer cálculo automático
+    setTimeout(calcularLv2, 500);
+    
     $('#num_guias').change(function() {
         generarCajasGuias();
         calcularLv2();
     });
-    
-    // Recalcular automático para los plásmidos fijos
-    $('#conc_plasmid1, #pb_plasmid1, #conc_plasmid2, #pb_plasmid2').on('change keyup', calcularLv2);
 });
 </script>
 {% endblock %}

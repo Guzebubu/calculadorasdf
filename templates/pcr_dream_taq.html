@@ -1,92 +1,80 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row">
+<div class="row fade-in">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">PCR DreamTaq - Cálculo de Master Mix</h5>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-thermometer-half"></i> PCR DreamTaq - Cálculo de Master Mix</h5>
             </div>
             <div class="card-body">
                 <form id="dreamTaqForm">
                     <div class="mb-3">
-                        <label for="num_reacciones" class="form-label">
+                        <label for="num_reacciones" class="form-label fw-bold">
                             <i class="bi bi-123"></i> Número de Reacciones:
                         </label>
-                        <input type="number" class="form-control" id="num_reacciones" value="8" step="1" min="1">
+                        <input type="number" class="form-control text-center fs-5" id="num_reacciones" value="8" step="1" min="1">
                     </div>
                     <div class="mb-3">
-                        <label for="porcentaje_extra" class="form-label">
+                        <label for="porcentaje_extra" class="form-label fw-bold">
                             <i class="bi bi-percent"></i> Porcentaje Extra (%):
                         </label>
-                        <input type="number" class="form-control" id="porcentaje_extra" value="10" step="0.1" min="0" max="100">
+                        <input type="number" class="form-control text-center" id="porcentaje_extra" value="10" step="0.1" min="0" max="100">
                         <div class="form-text">
-                            <i class="bi bi-info-circle"></i> Recomendado: 10% para compensar pérdidas por pipeteo
+                            <i class="bi bi-info-circle text-primary"></i> Recomendado: 10% para compensar pérdidas por pipeteo
                         </div>
                     </div>
-                    <button type="button" class="btn btn-calculate w-100" onclick="calcularDreamTaq()">
-                        <i class="bi bi-calculator"></i> Calcular
+                    <button type="button" class="btn btn-primary w-100 shadow-sm fs-5" onclick="calcularDreamTaq()">
+                        <i class="bi bi-calculator"></i> Calcular Master Mix
                     </button>
                 </form>
             </div>
         </div>
         
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
+        <div class="card shadow-sm mt-4 d-none d-lg-block">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 text-muted"><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body text-muted small">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Volumen total por reacción: <strong>10 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Buffer 10X: <strong>1 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> dNTPs (10 mM): <strong>0.2 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> Primers (10 µM): <strong>0.4 µl cada uno</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> DreamTaq Polymerase: <strong>0.08 µl</strong>
-                    </li>
-                    <li class="list-group-item">
-                        <i class="bi bi-check-circle text-success"></i> ADN molde: <strong>1 µl</strong>
-                    </li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> Volumen total por reacción: <strong>10 µl</strong></li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> Buffer 10X: <strong>1 µl</strong></li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> dNTPs (10 mM): <strong>0.2 µl</strong></li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> Primers (10 µM): <strong>0.4 µl c/u</strong></li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> DreamTaq Polymerase: <strong>0.08 µl</strong></li>
+                    <li class="list-group-item bg-transparent px-0 border-0"><i class="bi bi-check2 text-success"></i> ADN molde: <strong>1 µl</strong></li>
                 </ul>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados</h5>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-danger btn-sm text-white" onclick="..." id="...">
+                    <button type="button" class="btn btn-danger btn-sm text-white shadow-sm" onclick="exportarPDFDreamTaq()" id="pdfButtonDreamTaq" disabled>
                      <i class="bi bi-file-pdf me-1"></i> PDF
                      </button>
-                     <button type="button" class="btn btn-success btn-sm text-white" onclick="..." id="...">
+                     <button type="button" class="btn btn-success btn-sm text-white shadow-sm" onclick="exportarExcelDreamTaq()" id="excelButtonDreamTaq" disabled>
                       <i class="bi bi-file-excel me-1"></i> Excel
                      </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div id="resultados" class="result-card p-4 mb-4">
+            <div class="card-body d-flex flex-column">
+                <div id="resultados" class="result-card p-4 mb-3 text-center bg-light border rounded h-100 d-flex flex-column justify-content-center">
                     <p class="text-muted mb-0">
-                        <i class="bi bi-arrow-clockwise"></i> Complete el formulario y haga clic en "Calcular"
+                        <i class="bi bi-arrow-left-circle fs-4 d-block mb-2"></i> Configure sus parámetros y haga clic en "Calcular Master Mix"
                     </p>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="tablaDreamTaq">
-                        <thead class="table-primary">
+                <div class="table-responsive" id="contenedorTablaDreamTaq" style="display: none;">
+                    <table class="table table-bordered table-striped table-hover text-center align-middle" id="tablaDreamTaq">
+                        <thead class="table-dark">
                             <tr>
-                                <th><i class="bi bi-grid"></i> Componente</th>
-                                <th><i class="bi bi-eyedropper"></i> µl/Reacción</th>
-                                <th><i class="bi bi-eyedropper"></i> µl Totales</th>
+                                <th class="text-start"><i class="bi bi-grid"></i> Componente</th>
+                                <th><i class="bi bi-eyedropper"></i> 1 Rx (µl)</th>
+                                <th class="table-success text-dark"><i class="bi bi-eyedropper"></i> Master Mix (µl)</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
@@ -94,63 +82,16 @@
                     </table>
                 </div>
 
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <h6><i class="bi bi-card-checklist"></i> Resumen</h6>
-                        <table class="table table-sm table-bordered">
-                            <tr>
-                                <td>Número de reacciones:</td>
-                                <td id="res-num-reacciones">-</td>
-                            </tr>
-                            <tr>
-                                <td>Porcentaje extra:</td>
-                                <td id="res-porcentaje-extra">-</td>
-                            </tr>
-                            <tr>
-                                <td>Volumen por tubo:</td>
-                                <td id="res-por-tubo">-</td>
-                            </tr>
-                            <tr>
-                                <td>Master Mix (sin ADN):</td>
-                                <td id="res-master-mix">-</td>
-                            </tr>
-                            <tr class="table-success">
-                                <td><strong>Volumen total:</strong></td>
-                                <td><strong id="res-total">-</strong></td>
-                            </tr>
-                        </table>
+                <div class="mt-2" id="infoAdicionalDreamTaq" style="display: none;">
+                    <div class="alert alert-info shadow-sm">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-lightbulb"></i> Instrucciones de Preparación:</h6>
+                        <ol class="mb-0 small text-dark">
+                            <li>Mezcle en el tubo principal: Agua, Buffer, dNTPs, Primers y DreamTaq.</li>
+                            <li>Vortex suavemente y centrifugue la Master Mix.</li>
+                            <li>Añada <strong class="text-primary" id="res-master-por-tubo">0.00</strong> µL de esta mezcla a cada tubo de PCR individual.</li>
+                            <li>Añada 1 µL de ADN a cada tubo individual (Vol. final: 10 µL).</li>
+                        </ol>
                     </div>
-                    
-                    <div class="col-md-6">
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Instrucciones:</h6>
-                            <ol class="mb-0 small">
-                                <li>Mezclar en este orden: Agua, Buffer, dNTPs, Primers, DreamTaq</li>
-                                <li>Vortex suavemente y centrifugar brevemente</li>
-                                <li>Añadir <strong id="res-master-por-tubo">0.00</strong> µL de Master Mix a cada tubo</li>
-                                <li>Añadir 1 µL de ADN a cada tubo</li>
-                                <li>Volumen final por tubo: 10 µL</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="infoAdicionalDreamTaq" class="mt-3" style="display: none;">
-                    <h6><i class="bi bi-info-circle"></i> Información Técnica</h6>
-                    <table class="table table-sm table-bordered">
-                        <tr>
-                            <td>Fecha de cálculo:</td>
-                            <td id="fechaCalculoDreamTaq"></td>
-                        </tr>
-                        <tr>
-                            <td>Protocolo:</td>
-                            <td>PCR DreamTaq - Volumen: 10 µl por reacción</td>
-                        </tr>
-                        <tr>
-                            <td>Enzima:</td>
-                            <td>DreamTaq DNA Polymerase (Thermo Scientific)</td>
-                        </tr>
-                    </table>
                 </div>
             </div>
         </div>
@@ -173,7 +114,8 @@ function calcularDreamTaq() {
         return;
     }
     
-    $('#resultados').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p></div>');
+    $('#contenedorTablaDreamTaq, #infoAdicionalDreamTaq').hide();
+    $('#resultados').addClass('d-flex').show().html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando receta...</p>');
     $('#pdfButtonDreamTaq, #excelButtonDreamTaq').prop('disabled', true);
     
     $.ajax({
@@ -186,82 +128,74 @@ function calcularDreamTaq() {
         }),
         success: function(response) {
             if (response.error) {
-                $('#resultados').html(`<div class="alert alert-danger">Error: ${response.error}</div>`);
+                $('#resultados').html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Error: ${response.error}</div>`);
                 return;
             }
             
             resultadosDreamTaq = response;
             resultadosDreamTaq.fecha = new Date().toLocaleString('es-ES');
             
-            // Actualizar Resumen
-            $('#res-num-reacciones').text(response.num_reacciones);
-            $('#res-porcentaje-extra').text(response.porcentaje_extra + '%');
-            $('#res-por-tubo').text(response.por_tubo + ' µl');
-            $('#res-master-mix').text(response.master_mix_sin_adn.toFixed(2) + ' µl');
-            $('#res-total').text(response.total_con_extra.toFixed(2) + ' µl');
+            // ¡CORRECCIÓN BIOLÓGICA! Dividimos entre reacciones + extra
+            const factorTotal = response.num_reacciones * response.factor_extra;
+            const mmPorTubo = (response.master_mix_sin_adn / factorTotal).toFixed(2);
             
-            // Actualizar instrucción de volumen
-            const mmPorTubo = (response.master_mix_sin_adn / response.num_reacciones).toFixed(2);
+            // Actualizar instrucción dinámica
             $('#res-master-por-tubo').text(mmPorTubo);
             
             // Actualizar Tabla
             const tabla = `
                 <tr>
-                    <td>Agua libre de nucleasas</td>
-                    <td>${(response.agua / (response.num_reacciones * response.factor_extra)).toFixed(2)}</td>
-                    <td>${response.agua.toFixed(2)}</td>
+                    <td class="text-start fw-bold text-secondary">Agua libre de nucleasas</td>
+                    <td>${(response.agua / factorTotal).toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.agua.toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td>Buffer 10X</td>
+                    <td class="text-start fw-bold text-secondary">Buffer 10X</td>
                     <td>1.00</td>
-                    <td>${response.buffer.toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.buffer.toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td>dNTPs (10 mM)</td>
+                    <td class="text-start fw-bold text-secondary">dNTPs (10 mM)</td>
                     <td>0.20</td>
-                    <td>${response.dntps.toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.dntps.toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td>Primer Forward</td>
+                    <td class="text-start fw-bold text-secondary">Primer Forward</td>
                     <td>0.40</td>
-                    <td>${response.fw.toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.fw.toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td>Primer Reverse</td>
+                    <td class="text-start fw-bold text-secondary">Primer Reverse</td>
                     <td>0.40</td>
-                    <td>${response.rv.toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.rv.toFixed(2)}</td>
                 </tr>
                 <tr>
-                    <td>DreamTaq Polymerase</td>
+                    <td class="text-start fw-bold text-secondary">DreamTaq Polymerase</td>
                     <td>0.08</td>
-                    <td>${response.dream_taq.toFixed(2)}</td>
+                    <td class="table-success fw-bold fs-5 text-primary">${response.dream_taq.toFixed(2)}</td>
                 </tr>
-                <tr class="table-warning">
-                    <td><strong>MASTER MIX (sin ADN)</strong></td>
+                <tr class="table-secondary">
+                    <td class="text-start"><strong>MASTER MIX (sin ADN)</strong></td>
                     <td><strong>${mmPorTubo}</strong></td>
-                    <td><strong>${response.master_mix_sin_adn.toFixed(2)}</strong></td>
+                    <td class="fw-bold"><strong>${response.master_mix_sin_adn.toFixed(2)}</strong></td>
                 </tr>
                 <tr>
-                    <td>ADN molde</td>
-                    <td>1.00</td>
-                    <td>${response.dna.toFixed(2)}</td>
-                </tr>
-                <tr class="table-primary">
-                    <td><strong>TOTAL POR TUBO</strong></td>
-                    <td><strong>10.00</strong></td>
-                    <td><strong>${response.total_con_extra.toFixed(2)}</strong></td>
+                    <td class="text-start fw-bold text-muted">ADN molde</td>
+                    <td class="text-muted">1.00</td>
+                    <td class="text-muted">(Añadir directo a tubos)</td>
                 </tr>
             `;
             
             $('#tablaResultados').html(tabla);
-            $('#infoAdicionalDreamTaq').show();
-            $('#fechaCalculoDreamTaq').text(resultadosDreamTaq.fecha);
             
-            $('#resultados').html('<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle"></i> Cálculo completado</div>');
+            $('#resultados').removeClass('d-flex').hide();
+            $('#contenedorTablaDreamTaq, #infoAdicionalDreamTaq').fadeIn();
+            
+            // Habilitar botones
             $('#pdfButtonDreamTaq, #excelButtonDreamTaq').prop('disabled', false);
         },
         error: function(xhr, status, error) {
-            $('#resultados').html('<div class="alert alert-danger">Error de conexión con el servidor.</div>');
+            $('#resultados').removeClass('d-flex').show().html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión con el servidor.</div>');
         }
     });
 }
@@ -275,32 +209,111 @@ function exportarPDFDreamTaq() {
     
     doc.setFontSize(20);
     doc.setTextColor(13, 110, 253); 
-    doc.text('Reporte de PCR DreamTaq', 105, 20, null, null, 'center');
+    doc.text('Master Mix: PCR DreamTaq', 105, 20, null, null, 'center');
     
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
     doc.text(`Fecha: ${resultadosDreamTaq.fecha}`, 20, 35);
-    doc.text(`Reacciones: ${resultadosDreamTaq.num_reacciones} (+${resultadosDreamTaq.porcentaje_extra}%)`, 20, 42);
+    doc.text(`Reacciones: ${resultadosDreamTaq.num_reacciones} (+${resultadosDreamTaq.porcentaje_extra}% extra)`, 20, 42);
+    doc.text(`Volumen Final por Tubo: 10 µl`, 20, 49);
     
-    // Tabla básica
-    doc.autoTable({
-        startY: 55,
-        head: [['Componente', 'µl/Reacción', 'µl Totales']],
-        body: [
-            ['Agua', (resultadosDreamTaq.agua / (resultadosDreamTaq.num_reacciones * resultadosDreamTaq.factor_extra)).toFixed(2), resultadosDreamTaq.agua.toFixed(2)],
-            ['Buffer 10X', '1.00', resultadosDreamTaq.buffer.toFixed(2)],
-            ['dNTPs', '0.20', resultadosDreamTaq.dntps.toFixed(2)],
-            ['Primers', '0.80', (resultadosDreamTaq.fw + resultadosDreamTaq.rv).toFixed(2)],
-            ['DreamTaq', '0.08', resultadosDreamTaq.dream_taq.toFixed(2)],
-            ['Master Mix (sin ADN)', (resultadosDreamTaq.master_mix_sin_adn / resultadosDreamTaq.num_reacciones).toFixed(2), resultadosDreamTaq.master_mix_sin_adn.toFixed(2)],
-            ['ADN', '1.00', resultadosDreamTaq.dna.toFixed(2)],
-            ['TOTAL', '10.00', resultadosDreamTaq.total_con_extra.toFixed(2)]
-        ],
-        theme: 'grid',
-        headStyles: { fillColor: [13, 110, 253] }
+    const startY = 60;
+    doc.setFillColor(33, 37, 41);
+    doc.rect(20, startY, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('Componente', 25, startY + 7);
+    doc.text('1 Rx (µl)', 100, startY + 7);
+    doc.text('Master Mix (µl)', 150, startY + 7);
+    
+    let yPos = startY + 17;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+
+    const factorTotal = resultadosDreamTaq.num_reacciones * resultadosDreamTaq.factor_extra;
+    const mmPorTubo = (resultadosDreamTaq.master_mix_sin_adn / factorTotal).toFixed(2);
+
+    let filas = [
+        ['Agua libre de nucleasas', (resultadosDreamTaq.agua / factorTotal).toFixed(2), resultadosDreamTaq.agua.toFixed(2)],
+        ['Buffer 10X', '1.00', resultadosDreamTaq.buffer.toFixed(2)],
+        ['dNTPs (10 mM)', '0.20', resultadosDreamTaq.dntps.toFixed(2)],
+        ['Primer Forward', '0.40', resultadosDreamTaq.fw.toFixed(2)],
+        ['Primer Reverse', '0.40', resultadosDreamTaq.rv.toFixed(2)],
+        ['DreamTaq Polymerase', '0.08', resultadosDreamTaq.dream_taq.toFixed(2)]
+    ];
+
+    filas.forEach(fila => {
+        doc.text(String(fila[0]), 25, yPos);
+        doc.text(String(fila[1]), 100, yPos);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(25, 135, 84);
+        doc.text(String(fila[2]), 150, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        yPos += 8;
     });
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos + 2, 190, yPos + 2);
+    yPos += 10;
     
-    doc.save(`pcr_dreamtaq_${new Date().getTime()}.pdf`);
+    doc.text(`Total Master Mix por tubo:`, 25, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text(String(mmPorTubo), 100, yPos);
+    doc.text(String(resultadosDreamTaq.master_mix_sin_adn.toFixed(2)), 150, yPos);
+    doc.setFont(undefined, 'normal');
+    yPos += 8;
+
+    doc.text(`ADN Molde:`, 25, yPos);
+    doc.text(`1.00`, 100, yPos);
+    doc.text(`(Añadir directo a cada tubo)`, 150, yPos);
+    
+    yPos += 20;
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(13, 110, 253); 
+    doc.text('Instrucciones:', 20, yPos);
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(50, 50, 50);
+    yPos += 8;
+    doc.text('1. Mezcle en el tubo principal: Agua, Buffer, dNTPs, Primers y DreamTaq.', 25, yPos); yPos += 6;
+    doc.text('2. Vortex suavemente y centrifugue la Master Mix.', 25, yPos); yPos += 6;
+    doc.text(`3. Añada ${mmPorTubo} µL de esta mezcla a cada tubo individual.`, 25, yPos); yPos += 6;
+    doc.text('4. Añada 1 µL de ADN a cada tubo individual (Vol. final: 10 µL).', 25, yPos);
+// ==========================================
+    // 🖋️ SECCIÓN DE FIRMA DEL LABORATORIO
+    // ==========================================
+    yPos += 25; // Le damos un respiro de 25mm al último texto
+
+    // Sistema de seguridad: Si ya no cabe en la hoja, hacemos una nueva
+    if (yPos > 270) {
+        doc.addPage();
+        yPos = 30; 
+    }
+
+       
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text("McGGUS  SDF", 105, yPos + 10, null, null, 'center');
+    // ==========================================
+       
+    doc.save(`ensamblaje_lv2_${new Date().getTime()}.pdf`);
+    yPos += 25; 
+
+    if (yPos > 270) {
+        doc.addPage();
+        yPos = 30; 
+    }
+
+        
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text("Generado por MCGGUS Lab SDF", 105, yPos + 10, null, null, 'center');
+    
+    doc.save(`PCR_DreamTaq_${new Date().getTime()}.pdf`);
 }
 
 // Función para exportar a Excel (CSV)
@@ -308,38 +321,40 @@ function exportarExcelDreamTaq() {
     if (!resultadosDreamTaq) return;
     
     let csvRows = [];
-    csvRows.push(['PCR DreamTaq - Reporte', '', '']);
-    csvRows.push(['Fecha', resultadosDreamTaq.fecha]);
-    csvRows.push(['Reacciones', resultadosDreamTaq.num_reacciones]);
-    csvRows.push(['Extra (%)', resultadosDreamTaq.porcentaje_extra]);
+    csvRows.push(['Master Mix: PCR DreamTaq', '', '']);
+    csvRows.push(['Fecha', resultadosDreamTaq.fecha, '']);
+    csvRows.push(['Reacciones', resultadosDreamTaq.num_reacciones, '']);
+    csvRows.push(['Porcentaje Extra', resultadosDreamTaq.porcentaje_extra + '%', '']);
     csvRows.push([]);
-    csvRows.push(['Componente', 'ul/Reaccion', 'ul Totales']);
+    csvRows.push(['Componente', '1 Rx (ul)', 'Master Mix (ul)']);
     
-    const factor = resultadosDreamTaq.num_reacciones * resultadosDreamTaq.factor_extra;
+    const factorTotal = resultadosDreamTaq.num_reacciones * resultadosDreamTaq.factor_extra;
+    const mmPorTubo = (resultadosDreamTaq.master_mix_sin_adn / factorTotal).toFixed(2);
     
-    csvRows.push(['Agua', (resultadosDreamTaq.agua / factor).toFixed(2), resultadosDreamTaq.agua.toFixed(2)]);
+    csvRows.push(['Agua libre de nucleasas', (resultadosDreamTaq.agua / factorTotal).toFixed(2), resultadosDreamTaq.agua.toFixed(2)]);
     csvRows.push(['Buffer 10X', '1.00', resultadosDreamTaq.buffer.toFixed(2)]);
-    csvRows.push(['dNTPs', '0.20', resultadosDreamTaq.dntps.toFixed(2)]);
-    csvRows.push(['Primers (Fw+Rv)', '0.80', (resultadosDreamTaq.fw + resultadosDreamTaq.rv).toFixed(2)]);
-    csvRows.push(['DreamTaq', '0.08', resultadosDreamTaq.dream_taq.toFixed(2)]);
-    csvRows.push(['Master Mix (sin ADN)', (resultadosDreamTaq.master_mix_sin_adn / resultadosDreamTaq.num_reacciones).toFixed(2), resultadosDreamTaq.master_mix_sin_adn.toFixed(2)]);
-    csvRows.push(['ADN', '1.00', resultadosDreamTaq.dna.toFixed(2)]);
-    csvRows.push(['TOTAL', '10.00', resultadosDreamTaq.total_con_extra.toFixed(2)]);
+    csvRows.push(['dNTPs (10 mM)', '0.20', resultadosDreamTaq.dntps.toFixed(2)]);
+    csvRows.push(['Primer Forward', '0.40', resultadosDreamTaq.fw.toFixed(2)]);
+    csvRows.push(['Primer Reverse', '0.40', resultadosDreamTaq.rv.toFixed(2)]);
+    csvRows.push(['DreamTaq Polymerase', '0.08', resultadosDreamTaq.dream_taq.toFixed(2)]);
+    
+    csvRows.push([]);
+    csvRows.push(['Total Master Mix por tubo', mmPorTubo, resultadosDreamTaq.master_mix_sin_adn.toFixed(2)]);
+    csvRows.push(['ADN Molde (No va en MM)', '1.00', '']);
+    csvRows.push(['VOLUMEN FINAL TOTAL', '10.00', '']);
     
     let csvContent = csvRows.map(e => e.join(",")).join("\n");
     const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `pcr_dreamtaq_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `PCR_DreamTaq_${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-// Calcular automáticamente al abrir y al escribir
 $(document).ready(function() {
-    calcularDreamTaq();
-    $('#num_reacciones, #porcentaje_extra').on('change keyup', calcularDreamTaq);
+    setTimeout(calcularDreamTaq, 500); 
 });
 </script>
 {% endblock %}

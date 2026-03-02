@@ -354,6 +354,24 @@ function exportarPDF() {
         }
     });
 
+    // ==========================================
+    // 🖋️ SECCIÓN DE FIRMA DEL LABORATORIO
+    // ==========================================
+    yPos += 25; // Le damos un respiro de 25mm al último texto
+
+    // Sistema de seguridad: Si ya no cabe en la hoja, hacemos una nueva
+    if (yPos > 270) {
+        doc.addPage();
+        yPos = 30; 
+    }
+
+            
+    doc.setFont(undefined, 'italic');
+    doc.setTextColor(100, 100, 100);
+    doc.text("Generado por MCGGUS Lab SDF", 105, yPos + 10, null, null, 'center');
+    // ==========================================
+    
+
     doc.save(`Lv1_Ligaciones_${new Date().getTime()}.pdf`);
 }
 
