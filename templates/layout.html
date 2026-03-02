@@ -7,8 +7,76 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ESTILOS DE LA PANTALLA DE CARGA TIERNA */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 110, 253, 0.95); /* Azul translúcido */
+            z-index: 9999; /* Por encima de todo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none; /* No estorba si está oculta */
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Clase mágica para activarlo con JS */
+        .loading-overlay.activa {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .cute-icons i {
+            font-size: 5rem;
+            margin: 0 15px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Colores pastel tiernos */
+        .color-dna { color: #ff7675; }  /* Rosita */
+        .color-flask { color: #55efc4; } /* Menta */
+        .color-bact { color: #ffeaa7; } /* Amarillito */
+
+        /* Animación de saltito */
+        @keyframes saltito {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+            50% { transform: translateY(-30px) scale(1.1) rotate(10deg); }
+        }
+
+        .anim-bounce {
+            display: inline-block;
+            animation: saltito 1.2s infinite ease-in-out;
+        }
+
+        /* Animación de latido */
+        @keyframes latido {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .anim-pulse { animation: latido 1.5s infinite; }
+    </style>
 </head>
 <body>
+    <div id="pantalla-carga" class="loading-overlay">
+        <div class="loading-content text-center">
+            <div class="cute-icons">
+                <i class="fas fa-dna anim-bounce color-dna"></i>
+                <i class="fas fa-flask anim-bounce color-flask" style="animation-delay: 0.2s"></i>
+                <i class="fas fa-bacterium anim-bounce color-bact" style="animation-delay: 0.4s"></i>
+            </div>
+            <h4 class="mt-4 text-white fw-bold anim-pulse">Haciendo magia molecular...</h4>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -19,40 +87,14 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="bi bi-droplet"></i> PCR Inicial
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('pcr_dream_taq_page') }}">
-                            <i class="bi bi-thermometer"></i> PCR Dream Taq
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('lv1_page') }}">
-                            <i class="bi bi-1-circle"></i> Nivel 1
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('lv2_page') }}">
-                            <i class="bi bi-2-circle"></i> Nivel 2
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('medios_page') }}">
-                            <i class="bi bi-flower1"></i> Medios de Cultivo
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                          <a class="nav-link" href="/molaridad"><i class="bi bi-heptagon-half"></i> Molaridad</a>
-                    </li>
-                    <li class="nav-item">
-                      <a class="nav-link" href="/calculos_generales"><i class="bi bi-tools"></i> Cálculos Generales</a>
-                      </li>
-                     <li class="nav-item">
-                      <a class="nav-link" href="/recetas"><i class="bi bi-journal-text"></i> Recetas de Laboratorio</a>
-                     </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-droplet"></i> PCR Inicial</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pcr_dream_taq_page') }}"><i class="bi bi-thermometer"></i> PCR Dream Taq</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lv1_page') }}"><i class="bi bi-1-circle"></i> Nivel 1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lv2_page') }}"><i class="bi bi-2-circle"></i> Nivel 2</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('medios_page') }}"><i class="bi bi-flower1"></i> Medios de Cultivo</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/molaridad"><i class="bi bi-heptagon-half"></i> Molaridad</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/calculos_generales"><i class="bi bi-tools"></i> Cálculos Generales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/recetas"><i class="bi bi-journal-text"></i> Recetas de Laboratorio</a></li>
                 </ul>
             </div>
         </div>
@@ -71,7 +113,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
