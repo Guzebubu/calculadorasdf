@@ -350,8 +350,9 @@ def calcular_medios():
                 'ms_g': round((volumen_preparar * 4.8) / 1000, 2),
                 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2),
                 'agar_g': round((volumen_preparar * 8) / 1000, 2),
-                'd24_ul': round((volumen_preparar * 0.2) / 1000, 2),
-                'kinetina_ul': round((volumen_preparar * 0.1) / 1000, 2),
+                # Factor exacto: 0.2 y 0.1 µl por ml
+                'd24_ul': round(volumen_preparar * 0.2, 2),
+                'kinetina_ul': round(volumen_preparar * 0.1, 2),
                 'ph': 5.8
             }
         elif tipo_medio == 'selection':
@@ -360,9 +361,10 @@ def calcular_medios():
                 'ms_g': round((volumen_preparar * 4.8) / 1000, 2),
                 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2),
                 'agar_g': round((volumen_preparar * 8) / 1000, 2),
-                'tzeatina_ul': round((volumen_preparar * 2) / 1000, 2),
-                'meropenem_ul': round((volumen_preparar * 25) / 1000, 2),
-                'kanamicina_ul': round((volumen_preparar * 75) / 1000, 2),
+                # Factores sacados de tu Excel:
+                'tzeatina_ul': round(volumen_preparar * 1.0, 2),     # 40ml = 40µl
+                'meropenem_ul': round(volumen_preparar * 0.5, 2),    # 40ml = 20µl
+                'kanamicina_ul': round(volumen_preparar * 0.75, 2),  # 40ml = 30µl
                 'ph': 5.8
             }
         elif tipo_medio == 'rooting':
@@ -371,59 +373,14 @@ def calcular_medios():
                 'ms_g': round((volumen_preparar * 4.8) / 1000, 2),
                 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2),
                 'agar_g': round((volumen_preparar * 8) / 1000, 2),
-                'iaa_ul': round((volumen_preparar * 1) / 1000, 2),
-                'meropenem_ul': round((volumen_preparar * 30) / 1000, 2),
-                'kanamicina_ul': round((volumen_preparar * 75) / 1000, 2),
+                # OJO: Aquí dejé el IAA en 1.0 temporalmente.
+                'iaa_ul': round(volumen_preparar * 1.0, 2), 
+                # Ajustado a los mismos antibióticos
+                'meropenem_ul': round(volumen_preparar * 0.5, 2),
+                'kanamicina_ul': round(volumen_preparar * 0.75, 2),
                 'ph': 5.8
             }
         
-        return jsonify(resultados)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-    
-# ==========================================
-# RUTAS PARA MOLARIDAD
-# ==========================================
-@app.route('/molaridad')
-def molaridad_page():
-    return render_template('molaridad.html')
-
-@app.route('/api/molaridad', methods=['POST'])
-def calcular_molaridad():
-    try:
-        data = request.get_json()
-        tipo_calculo = data.get('tipo_calculo') # 'gramos' o 'molaridad'
-        peso_molecular = float(data.get('peso_molecular', 0))
-        volumen_ml = float(data.get('volumen_ml', 0))
-        
-        # Convertir ml a Litros para la fórmula (M = mol/L)
-        volumen_l = volumen_ml / 1000.0
-        
-        resultados = {
-            'tipo_calculo': tipo_calculo,
-            'peso_molecular': peso_molecular,
-            'volumen_ml': volumen_ml,
-            'volumen_l': volumen_l
-        }
-        
-        if tipo_calculo == 'gramos':
-            # Escenario A: Calcular Gramos a pesar
-            concentracion_m = float(data.get('concentracion_m', 0))
-            # Fórmula: Gramos = Molaridad * Volumen(L) * Peso Molecular
-            gramos = concentracion_m * volumen_l * peso_molecular
-            
-            resultados['concentracion_m'] = concentracion_m
-            resultados['gramos_resultado'] = round(gramos, 4)
-            
-        elif tipo_calculo == 'molaridad':
-            # Escenario B: Calcular Molaridad resultante
-            gramos_pesados = float(data.get('gramos_pesados', 0))
-            # Fórmula: Molaridad = Gramos / (Peso Molecular * Volumen(L))
-            molaridad = gramos_pesados / (peso_molecular * volumen_l) if (peso_molecular * volumen_l) > 0 else 0
-            
-            resultados['gramos_pesados'] = gramos_pesados
-            resultados['molaridad_resultado'] = round(molaridad, 4)
-            
         return jsonify(resultados)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
@@ -534,4 +491,4 @@ if __name__ == '__main__':
     # Render nos dará un puerto dinámico, si no hay, usamos el 5000 por defecto
     port = int(os.environ.get('PORT', 5000))
     # host='0.0.0.0' es la clave para que funcione en internet
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False) 
