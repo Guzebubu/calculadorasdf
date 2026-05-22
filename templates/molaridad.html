@@ -3,24 +3,24 @@
 {% block content %}
 <div class="row fade-in">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-heptagon-half"></i> Calculadora de Molaridad</h5>
             </div>
             <div class="card-body">
-                <form id="molaridadForm">
-                    <div class="mb-4 p-3 bg-light rounded border">
+                <form id="molaridadForm" autocomplete="off">
+                    <div class="mb-4 p-3 bg-light rounded border border-primary">
                         <label for="tipo_calculo" class="form-label fw-bold text-primary"><i class="bi bi-sliders"></i> ¿Qué deseas calcular?</label>
-                        <select class="form-select border-primary" id="tipo_calculo" onchange="cambiarModo()">
+                        <select class="form-select border-primary fw-bold" id="tipo_calculo" onchange="cambiarModo()">
                             <option value="gramos">Quiero calcular cuántos Gramos pesar</option>
                             <option value="molaridad">Quiero calcular la Molaridad final</option>
                         </select>
                     </div>
 
-                    <h6 class="text-muted"><i class="bi bi-info-circle"></i> Datos de la Solución</h6>
+                    <h6 class="text-muted fw-bold border-bottom pb-2 mb-3"><i class="bi bi-info-circle"></i> Datos de la Solución</h6>
                     
                     <div class="mb-3">
-                        <label for="reactivo_comun" class="form-label small mb-0 fw-bold"><i class="bi bi-list-check"></i> Reactivo:</label>
+                        <label for="reactivo_comun" class="form-label small mb-0 fw-bold">Reactivo de Trabajo:</label>
                         <select class="form-select form-select-sm border-info" id="reactivo_comun" onchange="seleccionarReactivo()">
                             <option value="58.44">NaCl (Cloruro de Sodio) - 58.44 g/mol</option>
                             <option value="74.55">KCl (Cloruro de Potasio) - 74.55 g/mol</option>
@@ -31,7 +31,7 @@
                             <option value="40.00">NaOH (Hidróxido de Sodio) - 40.00 g/mol</option>
                             <option value="288.38">SDS (Dodecilsulfato sódico) - 288.38 g/mol</option>
                             <option value="147.01">CaCl2 (Dihidratado) - 147.01 g/mol</option>
-                            <option value="personalizado" class="fw-bold text-primary">Mol personalizado</option>
+                            <option value="personalizado">Masa Molecular Personalizada...</option>
                         </select>
                     </div>
 
@@ -46,32 +46,30 @@
                         </div>
                     </div>
 
-                    <hr>
-
                     <div id="modo_gramos">
-                        <h6 class="text-primary"><i class="bi bi-bullseye"></i> Objetivo</h6>
+                        <h6 class="text-primary fw-bold"><i class="bi bi-bullseye"></i> Concentración Objetivo</h6>
                         <div class="mb-3">
-                            <label for="concentracion_m" class="form-label small mb-0">Concentración Deseada (M):</label>
-                            <div class="input-group">
+                            <label for="concentracion_m" class="form-label small mb-0">Molaridad Deseada (M):</label>
+                            <div class="input-group input-group-sm">
                                 <input type="number" class="form-control" id="concentracion_m" value="0.5" step="0.01">
-                                <span class="input-group-text">M (mol/L)</span>
+                                <span class="input-group-text bg-light fw-bold">M (mol/L)</span>
                             </div>
                         </div>
                     </div>
 
                     <div id="modo_molaridad" style="display: none;">
-                        <h6 class="text-primary"><i class="bi bi-scale"></i> Cantidad Pesada</h6>
+                        <h6 class="text-primary fw-bold"><i class="bi bi-scale"></i> Cantidad Real Utilizada</h6>
                         <div class="mb-3">
-                            <label for="gramos_pesados" class="form-label small mb-0">Gramos utilizados (g):</label>
-                            <div class="input-group">
+                            <label for="gramos_pesados" class="form-label small mb-0">Masa pesada en balanza (g):</label>
+                            <div class="input-group input-group-sm">
                                 <input type="number" class="form-control" id="gramos_pesados" value="14.61" step="0.01">
-                                <span class="input-group-text">g</span>
+                                <span class="input-group-text bg-light fw-bold">g</span>
                             </div>
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-calculate w-100 mt-2" onclick="calcularMolaridad()">
-                        <i class="bi bi-calculator"></i> Calcular
+                    <button type="button" class="btn btn-primary w-100 mt-3 fs-5" onclick="calcularMolaridad()">
+                        <i class="bi bi-calculator"></i> Ejecutar Cálculo
                     </button>
                 </form>
             </div>
@@ -79,37 +77,37 @@
     </div>
 
     <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-header bg-success d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados</h5>
+        <div class="card h-100 shadow-sm border-secondary">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Resultados</h5>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-danger btn-sm text-white" onclick="exportarPDF()" id="pdfBtn" disabled>
-                      <i class="bi bi-file-pdf me-1"></i> PDF
-                        </button>
-                          <button type="button" class="btn btn-success btn-sm text-white" onclick="exportarExcel()" id="excelBtn" disabled>
-                          <i class="bi bi-file-excel me-1"></i> Excel
-                         </button>
+                        <i class="bi bi-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-success btn-sm text-white" onclick="exportarExcel()" id="excelBtn" disabled>
+                        <i class="bi bi-file-excel me-1"></i> Excel
+                    </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div id="resultados" class="result-card p-4 mb-3 text-center">
-                    <p class="text-muted mb-0"><i class="bi bi-arrow-left-circle"></i> Ingresa los datos y presiona "Calcular"</p>
+            <div class="card-body d-flex flex-column">
+                <div id="resultados" class="result-card p-4 mb-3 text-center bg-light rounded border h-100 d-flex flex-column justify-content-center">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-left-circle fs-4 d-block mb-2"></i> Ingrese los datos analíticos y presione "Ejecutar Cálculo"</p>
                 </div>
 
                 <div class="table-responsive" id="tablaContenedor" style="display: none;">
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped text-center align-middle">
                         <thead class="table-dark">
                             <tr>
-                                <th>Parámetro</th>
-                                <th>Valor</th>
+                                <th class="text-start">Parámetro Químico</th>
+                                <th>Valor Calculado</th>
                             </tr>
                         </thead>
                         <tbody id="tablaResultados">
-                            </tbody>
+                        </tbody>
                     </table>
                     
-                    <div class="alert alert-info mt-3 small">
-                        <strong>Fórmula utilizada:</strong> <br>
+                    <div class="alert alert-info mt-3 small mb-0">
+                        <i class="bi bi-info-circle-fill"></i> <strong>Ecuación Fundamental:</strong> <br>
                         Molaridad (M) = Masa (g) / [Peso Molecular (g/mol) × Volumen (L)]
                     </div>
                 </div>
@@ -123,25 +121,15 @@
 <script>
 let resultadosMolaridad = null;
 
-// Lógica Limpia: Bloquea o desbloquea la caja
 function seleccionarReactivo() {
     const valorSeleccionado = $('#reactivo_comun').val();
-    
     if (valorSeleccionado === "personalizado") {
-        // Desbloqueamos la caja para que el usuario escriba
-        $('#peso_molecular').prop('readonly', false);
-        $('#peso_molecular').removeClass('bg-light');
-        $('#peso_molecular').val('');
-        $('#peso_molecular').focus();
+        $('#peso_molecular').prop('readonly', false).removeClass('bg-light').val('').focus();
     } else {
-        // Bloqueamos la caja y ponemos el valor del químico
-        $('#peso_molecular').prop('readonly', true);
-        $('#peso_molecular').addClass('bg-light');
-        $('#peso_molecular').val(valorSeleccionado);
+        $('#peso_molecular').prop('readonly', true).addClass('bg-light').val(valorSeleccionado);
     }
 }
 
-// Función para alternar entre modos de cálculo
 function cambiarModo() {
     const tipo = $('#tipo_calculo').val();
     if (tipo === 'gramos') {
@@ -152,11 +140,10 @@ function cambiarModo() {
         $('#modo_gramos').slideUp(200);
     }
     $('#tablaContenedor').hide();
-    $('#resultados').html('<p class="text-muted mb-0"><i class="bi bi-arrow-left-circle"></i> Ingresa los datos y presiona "Calcular"</p>');
+    $('#resultados').html('<p class="text-muted mb-0"><i class="bi bi-arrow-left-circle"></i> Ingrese los datos analíticos y presione "Ejecutar Cálculo"</p>');
     $('#pdfBtn, #excelBtn').prop('disabled', true);
 }
 
-// Función principal de cálculo
 function calcularMolaridad() {
     const tipoCalculo = $('#tipo_calculo').val();
     const pesoMolecular = $('#peso_molecular').val();
@@ -169,7 +156,7 @@ function calcularMolaridad() {
         return;
     }
 
-    $('#resultados').html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Calculando...</p>');
+    $('#resultados').addClass('d-flex').html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Procesando matemáticas...</p>');
     $('#pdfBtn, #excelBtn').prop('disabled', true);
 
     $.ajax({
@@ -192,129 +179,110 @@ function calcularMolaridad() {
             resultadosMolaridad = response;
             resultadosMolaridad.fecha = new Date().toLocaleString('es-ES');
 
-            // Obtener nombre del reactivo para el PDF
             const reactivoTexto = $('#reactivo_comun option:selected').text();
             resultadosMolaridad.reactivo_nombre = $('#reactivo_comun').val() !== "personalizado" ? reactivoTexto.split(' -')[0] : "Personalizado";
 
             let alertaPrincipal = '';
             let filasTabla = `
-                <tr><td>Reactivo</td><td>${resultadosMolaridad.reactivo_nombre}</td></tr>
-                <tr><td>Peso Molecular</td><td>${response.peso_molecular} g/mol</td></tr>
-                <tr><td>Volumen Total</td><td>${response.volumen_ml} ml (${response.volumen_l} L)</td></tr>
+                <tr><td class="text-start">Reactivo Analizado</td><td class="fw-bold text-dark">${resultadosMolaridad.reactivo_nombre}</td></tr>
+                <tr><td class="text-start">Masa Molecular (PM)</td><td>${response.peso_molecular.toFixed(2)} g/mol</td></tr>
+                <tr><td class="text-start">Volumen de Aforo</td><td>${response.volumen_ml} ml (${response.volumen_l.toFixed(3)} L)</td></tr>
             `;
 
             if (response.tipo_calculo === 'gramos') {
                 alertaPrincipal = `
-                    <h5 class="text-success"><i class="bi bi-scale"></i> Debes pesar:</h5>
-                    <h2 class="display-5 fw-bold text-success">${response.gramos_resultado} g</h2>
-                    <p class="text-muted mb-0">Para preparar ${response.volumen_ml} ml a ${response.concentracion_m} M</p>
+                    <h5 class="text-success fw-bold"><i class="bi bi-scale"></i> Masa Requerida:</h5>
+                    <h2 class="display-6 fw-bold text-success">${response.gramos_resultado} g</h2>
+                    <p class="text-muted small mb-0">Para disolver en ${response.volumen_ml} ml a ${response.concentracion_m} M</p>
                 `;
                 filasTabla += `
-                    <tr><td>Concentración Objetivo</td><td>${response.concentracion_m} M</td></tr>
-                    <tr class="table-success"><td><strong>Masa a Pesar</strong></td><td><strong>${response.gramos_resultado} g</strong></td></tr>
+                    <tr><td class="text-start">Concentración Objetivo</td><td>${response.concentracion_m} M</td></tr>
+                    <tr class="table-success text-success fw-bold"><td class="text-start">Masa a Pesar</td><td>${response.gramos_resultado} g</td></tr>
                 `;
             } else {
                 alertaPrincipal = `
-                    <h5 class="text-primary"><i class="bi bi-droplet-half"></i> La Molaridad final es:</h5>
-                    <h2 class="display-5 fw-bold text-primary">${response.molaridad_resultado} M</h2>
-                    <p class="text-muted mb-0">Disolviendo ${response.gramos_pesados} g en ${response.volumen_ml} ml</p>
+                    <h5 class="text-primary fw-bold"><i class="bi bi-droplet-half"></i> Molaridad Resultante:</h5>
+                    <h2 class="display-6 fw-bold text-primary">${response.molaridad_resultado} M</h2>
+                    <p class="text-muted small mb-0">Disolviendo ${response.gramos_pesados} g en ${response.volumen_ml} ml</p>
                 `;
                 filasTabla += `
-                    <tr><td>Masa Utilizada</td><td>${response.gramos_pesados} g</td></tr>
-                    <tr class="table-primary"><td><strong>Molaridad Resultante</strong></td><td><strong>${response.molaridad_resultado} M</strong></td></tr>
+                    <tr><td class="text-start">Masa Disuelta</td><td>${response.gramos_pesados} g</td></tr>
+                    <tr class="table-primary text-primary fw-bold"><td class="text-start">Molaridad Real</td><td>${response.molaridad_resultado} M</td></tr>
                 `;
             }
 
-            $('#resultados').html(alertaPrincipal);
+            $('#resultados').removeClass('d-flex').html(alertaPrincipal);
             $('#tablaResultados').html(filasTabla);
             $('#tablaContenedor').fadeIn();
             $('#pdfBtn, #excelBtn').prop('disabled', false);
         },
-        error: function(xhr) {
-            $('#resultados').html('<div class="alert alert-danger">Error de conexión con el servidor.</div>');
+        error: function() {
+            $('#resultados').removeClass('d-flex').html('<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Error fatal de comunicación con la API.</div>');
         }
     });
 }
 
-// Función para dibujar el PDF a mano
 function exportarPDF() {
     if (!resultadosMolaridad) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
     
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        doc.setFontSize(20);
-        doc.setTextColor(13, 110, 253);
-        doc.text('Reporte de Solución (Molaridad)', 105, 20, null, null, 'center');
-        
-        doc.setFontSize(11);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Fecha: ${resultadosMolaridad.fecha}`, 20, 35);
-        
-        let tipoTexto = resultadosMolaridad.tipo_calculo === 'gramos' 
-            ? 'Preparación de Solución (Búsqueda de Masa)' 
-            : 'Verificación de Concentración (Búsqueda de Molaridad)';
-        doc.text(`Tipo de Cálculo: ${tipoTexto}`, 20, 42);
+    doc.setFontSize(20);
+    doc.setTextColor(13, 110, 253);
+    doc.text('Reporte de Solución Química', 105, 20, null, null, 'center');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Fecha de Control: ${resultadosMolaridad.fecha}`, 20, 35);
+    
+    let tipoTexto = resultadosMolaridad.tipo_calculo === 'gramos' ? 'Cálculo de Masa Requerida' : 'Verificación de Molaridad Final';
+    doc.text(`Tipo de Análisis: ${tipoTexto}`, 20, 42);
 
-        const startY = 55;
-        doc.setFillColor(13, 110, 253);
-        doc.rect(20, startY, 170, 10, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text('Parámetro', 25, startY + 7);
-        doc.text('Valor', 105, startY + 7);
-        
-        let yPos = startY + 17;
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(11);
-        doc.setFont(undefined, 'normal');
+    const startY = 55;
+    doc.setFillColor(33, 37, 41);
+    doc.rect(20, startY, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('Parámetro Químico', 25, startY + 7);
+    doc.text('Magnitud / Valor', 105, startY + 7);
+    
+    let yPos = startY + 17;
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
 
-        let filas = [
-            ['Reactivo', resultadosMolaridad.reactivo_nombre],
-            ['Peso Molecular', `${resultadosMolaridad.peso_molecular} g/mol`],
-            ['Volumen Total', `${resultadosMolaridad.volumen_ml} ml (${resultadosMolaridad.volumen_l} L)`]
-        ];
+    let filas = [
+        ['Reactivo de Trabajo', resultadosMolaridad.reactivo_nombre],
+        ['Masa Molecular (PM)', `${resultadosMolaridad.peso_molecular} g/mol`],
+        ['Volumen Total', `${resultadosMolaridad.volumen_ml} ml (${resultadosMolaridad.volumen_l.toFixed(3)} L)`]
+    ];
 
-        if (resultadosMolaridad.tipo_calculo === 'gramos') {
-            filas.push(['Concentración Objetivo', `${resultadosMolaridad.concentracion_m} M`]);
-            filas.push(['MASA A PESAR', `${resultadosMolaridad.gramos_resultado} g`]);
-        } else {
-            filas.push(['Masa Utilizada', `${resultadosMolaridad.gramos_pesados} g`]);
-            filas.push(['MOLARIDAD RESULTANTE', `${resultadosMolaridad.molaridad_resultado} M`]);
-        }
-
-        filas.forEach((fila, index) => {
-            if (index === filas.length - 1) {
-                doc.setFont(undefined, 'bold');
-                if (resultadosMolaridad.tipo_calculo === 'gramos') {
-                    doc.setTextColor(25, 135, 84); 
-                } else {
-                    doc.setTextColor(13, 110, 253); 
-                }
-            }
-            doc.text(fila[0], 25, yPos);
-            doc.text(fila[1], 105, yPos);
-            yPos += 10;
-        });
-        
-        doc.setFont(undefined, 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
-        doc.text('Fórmula: Molaridad (M) = Masa (g) / [Peso Molecular (g/mol) x Volumen (L)]', 20, yPos + 10);
-        
-        doc.save(`Molaridad_${new Date().getTime()}.pdf`);
-        
-    } catch (error) {
-        console.error("Error generando PDF: ", error);
-        alert("Ocurrió un error al crear el PDF. Revisa la consola.");
+    if (resultadosMolaridad.tipo_calculo === 'gramos') {
+        filas.push(['Molaridad Objetivo', `${resultadosMolaridad.concentracion_m} M`]);
+        filas.push(['MASA NETA A PESAR', `${resultadosMolaridad.gramos_resultado} g`]);
+    } else {
+        filas.push(['Masa Utilizada', `${resultadosMolaridad.gramos_pesados} g`]);
+        filas.push(['MOLARIDAD FINAL', `${resultadosMolaridad.molaridad_resultado} M`]);
     }
+
+    filas.forEach((fila, index) => {
+        if (index === filas.length - 1) {
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(13, 110, 253); 
+        }
+        doc.text(fila[0], 25, yPos);
+        doc.text(fila[1], 105, yPos);
+        yPos += 10;
+    });
+    
+    doc.setFont(undefined, 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Generado automáticamente por LIMS Lab SDF', 105, yPos + 15, null, null, 'center');
+    doc.save(`Solucion_Molaridad_${new Date().getTime()}.pdf`);
 }
 
 function exportarExcel() {
     if (!resultadosMolaridad) return;
-    
     let csvRows = [];
     csvRows.push(['Reporte de Solucion (Molaridad)', '']);
     csvRows.push(['Fecha', resultadosMolaridad.fecha]);
@@ -325,11 +293,9 @@ function exportarExcel() {
     csvRows.push(['Volumen Total', resultadosMolaridad.volumen_ml, 'ml']);
 
     if (resultadosMolaridad.tipo_calculo === 'gramos') {
-        csvRows.push(['Tipo de calculo', 'Gramos a Pesar', '']);
         csvRows.push(['Concentracion Objetivo', resultadosMolaridad.concentracion_m, 'M']);
         csvRows.push(['MASA A PESAR', resultadosMolaridad.gramos_resultado, 'g']);
     } else {
-        csvRows.push(['Tipo de calculo', 'Molaridad Resultante', '']);
         csvRows.push(['Masa Utilizada', resultadosMolaridad.gramos_pesados, 'g']);
         csvRows.push(['MOLARIDAD RESULTANTE', resultadosMolaridad.molaridad_resultado, 'M']);
     }
@@ -343,15 +309,5 @@ function exportarExcel() {
     link.click();
     document.body.removeChild(link);
 }
-
-$(document).ready(function() {
-    // Calcular con Enter
-    $('input').on('keypress', function(e) {
-        if (e.which == 13) {
-            e.preventDefault();
-            calcularMolaridad();
-        }
-    });
-});
 </script>
 {% endblock %}
