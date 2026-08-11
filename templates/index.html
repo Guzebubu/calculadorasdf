@@ -2,105 +2,47 @@
 
 {% block content %}
 <div class="row fade-in">
-    <div class="col-lg-6">
-        <div class="card shadow-sm mb-4 border-primary">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-droplet-fill"></i> Súper Calculadora PCR - Multifórmulas</h5>
+    <div class="col-md-12">
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-droplet-fill"></i> Súper Calculadora PCR - Lote Múltiple</h5>
             </div>
             <div class="card-body">
-                <form id="pcrForm">
-                    <div class="mb-4 p-3 bg-white border border-primary rounded shadow-sm">
-                        <label for="tipo_pcr" class="form-label fw-bold text-primary">
-                            <i class="bi bi-diagram-3-fill"></i> Seleccionar Enzima / Protocolo:
-                        </label>
-                        <select class="form-select border-primary fw-bold text-dark" id="tipo_pcr">
-                            <option value="dream_taq" selected>DreamTaq (Receta Comercial Fija)</option>
-                            <option value="inicial">PCR Inicial (Receta Comercial Fija)</option>
-                            <option value="casera">Taq Casera / Protocolo Personalizado 🧪</option>
+                
+                <div class="row mb-4 justify-content-center">
+                    <div class="col-md-6 col-lg-4 text-center p-3 bg-light rounded border">
+                        <label for="num_lotes_pcr" class="form-label fw-bold text-primary"><i class="bi bi-list-ol"></i> Número de Master Mixes diferentes:</label>
+                        <select class="form-select border-primary text-center fw-bold fs-5" id="num_lotes_pcr" onchange="generarFormulariosPCR()">
+                            <option value="1" selected>1 PCR</option>
+                            <option value="2">2 PCRs simultáneas</option>
+                            <option value="3">3 PCRs simultáneas</option>
+                            <option value="4">4 PCRs simultáneas</option>
+                            <option value="5">5 PCRs simultáneas</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label for="num_reacciones" class="form-label fw-bold">
-                            <i class="bi bi-123"></i> Número de Reacciones:
-                        </label>
-                        <input type="number" class="form-control" id="num_reacciones" value="8" min="1" step="1">
-                        <div class="form-text">Número total de reacciones PCR a preparar</div>
+                <form id="pcrMultiForm" autocomplete="off">
+                    <div class="row" id="pcrs-container">
+                        <!-- Las tarjetas dinámicas se inyectan aquí -->
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="porcentaje_extra" class="form-label fw-bold">
-                            <i class="bi bi-percent"></i> Porcentaje Extra Master Mix (%):
-                        </label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" id="porcentaje_extra" value="10" min="0" max="100" step="0.1">
-                            <span class="input-group-text bg-light">%</span>
-                        </div>
-                        <div class="form-text">
-                            <i class="bi bi-info-circle text-primary"></i> Extra para error de pipeteo. Ingrese 0 si no desea extra.
-                        </div>
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary btn-lg px-5 shadow-sm" onclick="calcularTodasLasPCRs()">
+                            <i class="bi bi-calculator"></i> Calcular Todas las PCRs
+                        </button>
                     </div>
-
-                    <div id="parametros-avanzados" style="display: none;">
-                        <hr>
-                        <h6 class="text-primary fw-bold mb-3"><i class="bi bi-list-check"></i> Receta de Reacción (1 Rx)</h6>
-                        
-                        <div class="bg-light p-3 rounded border mb-3">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2 border-bottom border-primary">
-                                    <label for="base_total" class="form-label small mb-0 fw-bold text-primary">Volumen Total (µl)</label>
-                                    <input type="number" class="form-control form-control-sm border-primary fw-bold text-center" style="width: 80px;" id="base_total" value="10" step="0.5">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_buffer" class="form-label small mb-0 text-muted">Buffer (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_buffer" value="1" step="0.1">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_mgcl2" class="form-label small mb-0 text-muted">MgCl2 (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_mgcl2" value="1" step="0.1">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_dntps" class="form-label small mb-0 text-muted">dNTPs (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_dntps" value="0.2" step="0.05">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_fw" class="form-label small mb-0 text-muted">Primer Fw (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_fw" value="0.4" step="0.1">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_rv" class="form-label small mb-0 text-muted">Primer Rv (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_rv" value="0.4" step="0.1">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2">
-                                    <label for="base_polimerasa" class="form-label small mb-0 text-muted">Taq Polimerasa (µl)</label>
-                                    <input type="number" class="form-control form-control-sm text-center" style="width: 80px;" id="base_polimerasa" value="0.5" step="0.1">
-                                </li>
-                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-2 border-top border-dark border-2">
-                                    <label for="volumen_adn" class="form-label small mb-0 fw-bold text-dark">ADN Molde (µl)</label>
-                                    <input type="number" class="form-control form-control-sm border-dark fw-bold text-center" style="width: 80px;" id="volumen_adn" value="1" step="0.1">
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <button type="button" class="btn btn-primary w-100 shadow-sm fs-5 mt-2" onclick="calcularPCR()">
-                        <i class="bi bi-calculator"></i> Calcular Volúmenes
-                    </button>
                 </form>
             </div>
         </div>
-        
-        <div class="card shadow-sm mt-4 d-none d-lg-block">
-            <div class="card-body bg-light rounded">
-                <i class="bi bi-exclamation-triangle-fill text-warning"></i> <strong>Nota de Seguridad:</strong> El porcentaje extra se calcula automáticamente protegiendo el volumen del ADN molde, el cual debe añadirse de forma independiente en cada tubo de reacción.
-            </div>
-        </div>
     </div>
-    
-    <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-white"><i class="bi bi-clipboard-data"></i> Resultados del Cálculo</h5>
+</div>
+
+<div class="row fade-in">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Tablas de Resultados (Lote)</h5>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-danger btn-sm text-white shadow-sm" onclick="exportarPDF()" id="pdfButton" disabled>
                         <i class="bi bi-file-pdf me-1"></i> PDF
@@ -110,46 +52,13 @@
                     </button>
                 </div>
             </div>
-            <div class="card-body d-flex flex-column">
-                <div id="resultados" class="result-card p-4 mb-4 text-center bg-light rounded border border-info h-100 d-flex flex-column justify-content-center">
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-arrow-left-circle fs-4 d-block mb-2"></i> Configure sus parámetros y haga clic en "Calcular Volúmenes"
-                    </p>
+            <div class="card-body">
+                <div id="resultados-estado" class="result-card p-4 mb-3 text-center bg-light border rounded">
+                    <p class="text-muted mb-0"><i class="bi bi-arrow-up-circle fs-4 d-block mb-2"></i> Configura tus PCRs y presiona "Calcular Todas"</p>
                 </div>
-                
-                <div class="table-responsive" id="contenedorTablaPCR" style="display: none;">
-                    <table class="table table-striped table-hover border" id="tablaPCR">
-                        <thead class="table-dark text-center align-middle">
-                            <tr>
-                                <th class="text-start"><i class="bi bi-grid"></i> Componente</th>
-                                <th><i class="bi bi-eyedropper"></i> 1 Rx (µl)</th>
-                                <th class="table-success text-dark"><i class="bi bi-eyedropper"></i> Master Mix (µl)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaResultados" class="text-center align-middle">
-                        </tbody>
-                        <tfoot id="tablaFooter">
-                            <tr class="table-primary">
-                                <td class="text-start"><strong>VOLUMEN FINAL</strong></td>
-                                <td><strong id="totalBasePie">0.0</strong></td>
-                                <td><strong id="totalFinal">0.0</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                
-                <div id="infoAdicional" class="mt-3" style="display: none;">
-                    <h6 class="text-muted border-bottom pb-2"><i class="bi bi-info-circle"></i> Información del Protocolo</h6>
-                    <table class="table table-sm table-borderless small">
-                        <tr>
-                            <td class="text-muted" width="120">Fecha:</td>
-                            <td id="fechaCalculo" class="fw-bold"></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Observaciones:</td>
-                            <td>Agite suavemente (vortex) y centrifugue brevemente la Master Mix antes de dosificar en alícuotas. Mantenga las enzimas polimerasas en hielo durante todo el procedimiento.</td>
-                        </tr>
-                    </table>
+
+                <div id="contenedor-tablas-resultados" class="row">
+                    <!-- Aquí se renderizarán múltiples tablas -->
                 </div>
             </div>
         </div>
@@ -159,271 +68,393 @@
 
 {% block scripts %}
 <script>
-let resultadosPCR = null;
+let resultadosGlobalesPCR = null;
+let memoriaPCRs = {};
 
-// Mostrar u ocultar parámetros ajustables si se elige Taq Casera
-$('#tipo_pcr').on('change', function() {
-    if ($(this).val() === 'casera') {
-        $('#parametros-avanzados').slideDown();
+function generarFormulariosPCR() {
+    guardarMemoriaPCR();
+    const numLotes = parseInt($('#num_lotes_pcr').val());
+    let html = '';
+
+    for (let i = 1; i <= numLotes; i++) {
+        const data = memoriaPCRs[`pcr_${i}`] || {
+            nombre: `Master Mix ${i}`, tipo_pcr: 'dream_taq', num_reacciones: 8, porcentaje_extra: 10, vol_total: 10, vol_adn: 1.0,
+            base_buffer: 1.0, base_mgcl2: 1.0, base_dntps: 0.2, base_fw: 0.4, base_rv: 0.4, base_polimerasa: 0.5
+        };
+
+        const displayCasera = data.tipo_pcr === 'casera' ? 'block' : 'none';
+
+        html += `
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 border-info shadow-sm">
+                <div class="card-header bg-info bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-dark fw-bold"><i class="bi bi-virus"></i> Reacción #${i}</h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
+                            <label class="form-label small mb-0 fw-bold">Nombre del Ensayo:</label>
+                            <input type="text" class="form-control form-control-sm pcr-nombre" data-id="${i}" value="${data.nombre}" placeholder="Ej. Gen (50ul)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small mb-0 fw-bold">Protocolo / Enzima:</label>
+                            <select class="form-select form-select-sm border-primary pcr-tipo" data-id="${i}" onchange="autoAjustarVolumenes(${i}, this.value)">
+                                <option value="dream_taq" ${data.tipo_pcr === 'dream_taq' ? 'selected' : ''}>DreamTaq</option>
+                                <option value="inicial" ${data.tipo_pcr === 'inicial' ? 'selected' : ''}>PCR Inicial (Alta fidelidad)</option>
+                                <option value="casera" ${data.tipo_pcr === 'casera' ? 'selected' : ''}>Taq Casera (Manual)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3 bg-light p-2 rounded">
+                        <div class="col-6">
+                            <label class="form-label small mb-0">Nº Reacciones:</label>
+                            <input type="number" class="form-control form-control-sm pcr-rx" data-id="${i}" value="${data.num_reacciones}" step="1" min="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small mb-0">Extra (%):</label>
+                            <input type="number" class="form-control form-control-sm pcr-extra" data-id="${i}" value="${data.porcentaje_extra}" step="0.1" min="0">
+                        </div>
+                        <div class="col-6 mt-2">
+                            <label class="form-label small mb-0 text-primary fw-bold">Vol. Total (µl):</label>
+                            <input type="number" class="form-control form-control-sm border-primary pcr-vol-total" data-id="${i}" value="${data.vol_total}" step="0.5">
+                        </div>
+                        <div class="col-6 mt-2">
+                            <label class="form-label small mb-0 fw-bold">ADN Molde (µl):</label>
+                            <input type="number" class="form-control form-control-sm border-dark pcr-vol-adn" data-id="${i}" value="${data.vol_adn}" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="panel-casera-${i} bg-white border rounded p-2" style="display: ${displayCasera};">
+                        <h6 class="small text-danger fw-bold border-bottom pb-1">Receta Manual (1 Rx)</h6>
+                        <div class="row g-1 small">
+                            <div class="col-4"><label>Buff:</label><input type="number" class="form-control form-control-sm pcr-c-buff" data-id="${i}" value="${data.base_buffer}"></div>
+                            <div class="col-4"><label>MgCl2:</label><input type="number" class="form-control form-control-sm pcr-c-mg" data-id="${i}" value="${data.base_mgcl2}"></div>
+                            <div class="col-4"><label>dNTPs:</label><input type="number" class="form-control form-control-sm pcr-c-dntp" data-id="${i}" value="${data.base_dntps}"></div>
+                            <div class="col-4 mt-1"><label>Fw:</label><input type="number" class="form-control form-control-sm pcr-c-fw" data-id="${i}" value="${data.base_fw}"></div>
+                            <div class="col-4 mt-1"><label>Rv:</label><input type="number" class="form-control form-control-sm pcr-c-rv" data-id="${i}" value="${data.base_rv}"></div>
+                            <div class="col-4 mt-1"><label>Taq:</label><input type="number" class="form-control form-control-sm pcr-c-taq" data-id="${i}" value="${data.base_polimerasa}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+    $('#pcrs-container').html(html);
+}
+
+function guardarMemoriaPCR() {
+    $('.pcr-nombre').each(function() {
+        const id = $(this).data('id');
+        memoriaPCRs[`pcr_${id}`] = {
+            nombre: $(this).val() || `Master Mix ${id}`,
+            tipo_pcr: $(`.pcr-tipo[data-id="${id}"]`).val(),
+            num_reacciones: parseFloat($(`.pcr-rx[data-id="${id}"]`).val() || 0),
+            porcentaje_extra: parseFloat($(`.pcr-extra[data-id="${id}"]`).val() || 0),
+            vol_total: parseFloat($(`.pcr-vol-total[data-id="${id}"]`).val() || 0),
+            vol_adn: parseFloat($(`.pcr-vol-adn[data-id="${id}"]`).val() || 0),
+            base_buffer: parseFloat($(`.pcr-c-buff[data-id="${id}"]`).val() || 0),
+            base_mgcl2: parseFloat($(`.pcr-c-mg[data-id="${id}"]`).val() || 0),
+            base_dntps: parseFloat($(`.pcr-c-dntp[data-id="${id}"]`).val() || 0),
+            base_fw: parseFloat($(`.pcr-c-fw[data-id="${id}"]`).val() || 0),
+            base_rv: parseFloat($(`.pcr-c-rv[data-id="${id}"]`).val() || 0),
+            base_polimerasa: parseFloat($(`.pcr-c-taq[data-id="${id}"]`).val() || 0)
+        };
+    });
+}
+
+function autoAjustarVolumenes(id, seleccion) {
+    if (seleccion === 'casera') {
+        $(`.panel-casera-${id}`).slideDown();
     } else {
-        $('#parametros-avanzados').slideUp();
+        $(`.panel-casera-${id}`).slideUp();
     }
-});
+    
+    if (seleccion === 'dream_taq') {
+        $(`.pcr-vol-total[data-id="${id}"]`).val(10);
+        $(`.pcr-vol-adn[data-id="${id}"]`).val(1.0);
+    } else if (seleccion === 'inicial') {
+        $(`.pcr-vol-total[data-id="${id}"]`).val(50);
+        $(`.pcr-vol-adn[data-id="${id}"]`).val(1.5);
+    }
+}
 
-function calcularPCR() {
-    const tipoPcr = $('#tipo_pcr').val();
-    const numReacciones = $('#num_reacciones').val();
-    const porcentajeExtra = $('#porcentaje_extra').val();
-    
-    if (numReacciones < 1) {
-        alert('El número de reacciones debe ser al menos 1');
-        return;
+function calcularTodasLasPCRs() {
+    guardarMemoriaPCR();
+    const numLotes = parseInt($('#num_lotes_pcr').val());
+    let payload_array = [];
+
+    for (let i = 1; i <= numLotes; i++) {
+        let pcr_data = memoriaPCRs[`pcr_${i}`];
+        if (pcr_data.num_reacciones < 1 || pcr_data.vol_total <= 0) {
+            alert(`Error en Reacción #${i}: Reacciones y Volúmenes deben ser mayores a 0.`);
+            return;
+        }
+        payload_array.push(pcr_data);
     }
-    
-    let payload = {
-        tipo_pcr: tipoPcr,
-        num_reacciones: numReacciones,
-        porcentaje_extra: porcentajeExtra
-    };
-    
-    // Si es la Taq Casera, mandar todos los componentes editables
-    if (tipoPcr === 'casera') {
-        payload.base_total = $('#base_total').val();
-        payload.volumen_adn = $('#volumen_adn').val();
-        payload.base_buffer = $('#base_buffer').val();
-        payload.base_mgcl2 = $('#base_mgcl2').val();
-        payload.base_dntps = $('#base_dntps').val();
-        payload.base_fw = $('#base_fw').val();
-        payload.base_rv = $('#base_rv').val();
-        payload.base_polimerasa = $('#base_polimerasa').val();
-    }
-    
-    $('#contenedorTablaPCR, #infoAdicional').hide();
-    $('#resultados').addClass('d-flex').show().html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Procesando fórmula en el servidor...</p>');
+
+    $('#contenedor-tablas-resultados').empty();
     $('#pdfButton, #excelButton').prop('disabled', true);
-    
+    $('#resultados-estado').removeClass('bg-light').addClass('bg-white border-primary').html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-primary">Calculando lote bioquímico...</p>');
+
     $.ajax({
         url: '/api/pcr_master',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(payload),
+        data: JSON.stringify({ pcrs: payload_array }),
         success: function(response) {
             if (response.error) {
-                $('#resultados').html(`<div class="alert alert-danger">Error: ${response.error}</div>`);
+                $('#resultados-estado').html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> ${response.error}</div>`);
                 return;
             }
+
+            resultadosGlobalesPCR = response.resultados;
+
+            $('#resultados-estado').html(`<div class="alert alert-success py-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong>Lote Calculado Exitosamente:</strong> ${response.resultados.length} Master Mixes procesados.</div>`);
             
-            resultadosPCR = response;
-            resultadosPCR.fecha = new Date().toLocaleString('es-ES');
+            let tablasGlobalesHTML = '';
             
-            $('#resultados').removeClass('d-flex').hide();
-            $('#contenedorTablaPCR, #infoAdicional').fadeIn();
-            
-            // Renderizado base común (Agua y Buffer)
-            let filasHTML = `
-                <tr>
-                    <td class="text-start fw-bold text-secondary">Agua Libre de Nucleasas</td>
-                    <td>${response.base_agua.toFixed(2)}</td>
-                    <td class="table-success fw-bold fs-5 text-primary">${response.agua.toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td class="text-start fw-bold text-secondary">Buffer</td>
-                    <td>${response.base_buffer.toFixed(2)}</td>
-                    <td class="table-success fw-bold fs-5 text-primary">${response.buffer.toFixed(2)}</td>
-                </tr>
-            `;
-            
-            // Renderizado condicional según el módulo químico activo
-            if (response.tipo_pcr === 'dream_taq') {
-                filasHTML += `
-                    <tr><td class="text-start fw-bold text-secondary">dNTPs (10 mM)</td><td>${response.base_dntps.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.dntps.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Primer Forward</td><td>${response.base_fw.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.fw.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Primer Reverse</td><td>${response.base_rv.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.rv.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">DreamTaq DNA Polimerasa</td><td>${response.base_dream_taq.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.dream_taq.toFixed(2)}</td></tr>
+            response.resultados.forEach((res, index) => {
+                let badgeColor = res.tipo_pcr === 'dream_taq' ? 'bg-primary' : (res.tipo_pcr === 'inicial' ? 'bg-danger' : 'bg-secondary');
+                let tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Taq Casera');
+
+                let filas = `
+                    <tr><td class="text-start">Agua Libre de Nucleasas</td><td>${res.base_agua.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.agua.toFixed(2)}</td></tr>
+                    <tr><td class="text-start">Buffer</td><td>${res.base_buffer.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.buffer.toFixed(2)}</td></tr>
                 `;
-            } else if (response.tipo_pcr === 'inicial') {
-                filasHTML += `
-                    <tr><td class="text-start fw-bold text-secondary">Primer Forward</td><td>${response.base_primers.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.fw.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Primer Reverse</td><td>${response.base_primers.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.rv.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Polimerasa</td><td>${response.base_polimerasa.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.polimerasa.toFixed(2)}</td></tr>
+
+                if (res.tipo_pcr === 'dream_taq') {
+                    filas += `
+                        <tr><td class="text-start">dNTPs (10 mM)</td><td>${res.base_dntps.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.dntps.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Primer Fw</td><td>${res.base_fw.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.fw.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Primer Rv</td><td>${res.base_rv.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.rv.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Polimerasa</td><td>${res.base_polimerasa.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.polimerasa.toFixed(2)}</td></tr>
+                    `;
+                } else if (res.tipo_pcr === 'inicial') {
+                    filas += `
+                        <tr><td class="text-start">Primer Fw</td><td>${res.base_fw.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.fw.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Primer Rv</td><td>${res.base_rv.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.rv.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Polimerasa</td><td>${res.base_polimerasa.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.polimerasa.toFixed(2)}</td></tr>
+                    `;
+                } else if (res.tipo_pcr === 'casera') {
+                    filas += `
+                        <tr><td class="text-start">MgCl2</td><td>${res.base_mgcl2.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.mgcl2.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">dNTPs</td><td>${res.base_dntps.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.dntps.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Primer Fw</td><td>${res.base_fw.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.fw.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Primer Rv</td><td>${res.base_rv.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.rv.toFixed(2)}</td></tr>
+                        <tr><td class="text-start">Polimerasa</td><td>${res.base_polimerasa.toFixed(2)}</td><td class="table-success fw-bold text-primary">${res.polimerasa.toFixed(2)}</td></tr>
+                    `;
+                }
+
+                filas += `
+                    <tr class="table-secondary"><td class="text-start"><strong>Total Master Mix / Alícuota</strong></td><td><strong>${res.base_master_mix_tubo.toFixed(2)}</strong></td><td class="fw-bold"><strong>${res.master_mix_sin_adn.toFixed(2)}</strong></td></tr>
+                    <tr><td class="text-start text-dark border-top border-dark border-2">ADN Molde</td><td class="text-dark border-top border-dark border-2">${res.base_adn.toFixed(2)}</td><td class="text-dark border-top border-dark border-2 small">(Añadir a tubos)</td></tr>
                 `;
-            } else if (response.tipo_pcr === 'casera') {
-                filasHTML += `
-                    <tr><td class="text-start fw-bold text-secondary">MgCl2</td><td>${response.base_mgcl2.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.mgcl2.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">dNTPs</td><td>${response.base_dntps.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.dntps.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Primer Forward</td><td>${response.base_fw.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.fw.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Primer Reverse</td><td>${response.base_rv.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.rv.toFixed(2)}</td></tr>
-                    <tr><td class="text-start fw-bold text-secondary">Taq Polimerasa Casera</td><td>${response.base_polimerasa.toFixed(2)}</td><td class="table-success fw-bold fs-5 text-primary">${response.polimerasa.toFixed(2)}</td></tr>
-                `;
-            }
-            
-            filasHTML += `
-                <tr class="table-secondary">
-                    <td class="text-start"><strong>Total Master Mix (Vol. Alícuota)</strong></td>
-                    <td><strong>${response.base_master_mix_tubo.toFixed(2)}</strong></td>
-                    <td class="fw-bold text-primary"><strong>${response.master_mix_sin_adn.toFixed(2)}</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-start fw-bold text-muted">ADN Molde (Template)</td>
-                    <td class="text-muted">${response.base_adn.toFixed(2)}</td>
-                    <td class="text-muted">(Añadir directo a cada tubo)</td>
-                </tr>
-            `;
-            
-            $('#tablaResultados').html(filasHTML);
-            $('#totalBasePie').text(response.por_tubo.toFixed(2));
-            $('#totalFinal').text(response.total_con_extra.toFixed(2) + ' µl');
-            $('#fechaCalculo').text(resultadosPCR.fecha);
-            
-            $('#pdfButton, #excelButton').prop('disabled', false);
+
+                tablasGlobalesHTML += `
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100 border">
+                        <div class="card-header bg-light d-flex justify-content-between py-2">
+                            <span class="fw-bold text-dark"><i class="bi bi-hash"></i> ${index+1}. ${res.nombre}</span>
+                            <span class="badge ${badgeColor}">${tagProtocolo}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-sm table-striped text-center align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="text-start fw-light">Reactivo</th>
+                                        <th class="fw-light">1 Rx (µl)</th>
+                                        <th class="table-success text-dark fw-bold">Mezcla (µl)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${filas}
+                                </tbody>
+                            </table>
+                            <div class="p-2 bg-light border-top text-end small">
+                                Vol. Final de Rx: <span class="badge bg-dark">${res.por_tubo.toFixed(2)} µl</span> | Reacciones: <span class="badge bg-secondary">${res.num_reacciones} (+${res.porcentaje_extra}%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            $('#contenedor-tablas-resultados').html(tablasGlobalesHTML);
+            $('#pdfButton, #excelButton').prop('disabled', false); 
         },
         error: function() {
-            $('#resultados').html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Error de comunicación con el servidor.</div>`);
+            $('#resultados-estado').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión local/servidor.</div>');
         }
     });
 }
 
 function exportarPDF() {
-    if (!resultadosPCR) return;
+    if (!resultadosGlobalesPCR || resultadosGlobalesPCR.length === 0) return;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-    
+    const fecha = new Date().toLocaleString('es-ES');
+
     doc.setFontSize(20);
     doc.setTextColor(13, 110, 253);
-    const titulaReporte = resultadosPCR.tipo_pcr === 'dream_taq' ? 'Master Mix: DreamTaq PCR' : (resultadosPCR.tipo_pcr === 'casera' ? 'Master Mix: Taq Casera' : 'Master Mix: PCR Inicial');
-    doc.text(titulaReporte, 105, 20, null, null, 'center');
-    
+    doc.text('Lote de Master Mixes: PCR Múltiple', 105, 20, null, null, 'center');
+
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Fecha de emisión: ${resultadosPCR.fecha}`, 20, 35);
-    doc.text(`Reacciones totales: ${resultadosPCR.num_reacciones} (+${resultadosPCR.porcentaje_extra}% extra)`, 20, 42);
-    doc.text(`Capacidad del tubo (Reacción): ${resultadosPCR.por_tubo} µl`, 20, 49);
+    doc.text(`Fecha de emisión: ${fecha}`, 20, 30);
+    doc.text(`Total de Master Mixes: ${resultadosGlobalesPCR.length}`, 20, 37);
 
-    const startY = 60;
-    doc.setFillColor(33, 37, 41);
-    doc.rect(20, startY, 170, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont(undefined, 'bold');
-    doc.text('Componente Químico / Biológico', 25, startY + 7);
-    doc.text('1 Rx (µl)', 100, startY + 7);
-    doc.text('Vol. Mezcla (µl)', 150, startY + 7);
-    
-    let yPos = startY + 17;
-    doc.setTextColor(0, 0, 0);
-    doc.setFont(undefined, 'normal');
+    let yPos = 45;
 
-    let filas = [
-        ['Agua libre de nucleasas', resultadosPCR.base_agua.toFixed(2), resultadosPCR.agua.toFixed(2)],
-        ['Buffer', resultadosPCR.base_buffer.toFixed(2), resultadosPCR.buffer.toFixed(2)]
-    ];
+    resultadosGlobalesPCR.forEach((res, index) => {
+        if (yPos > 240) {
+            doc.addPage();
+            yPos = 20;
+        }
 
-    if (resultadosPCR.tipo_pcr === 'dream_taq') {
-        filas.push(['dNTPs (10 mM)', resultadosPCR.base_dntps.toFixed(2), resultadosPCR.dntps.toFixed(2)]);
-        filas.push(['Primer Forward', resultadosPCR.base_fw.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        filas.push(['Primer Reverse', resultadosPCR.base_rv.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        filas.push(['DreamTaq Polimerasa', resultadosPCR.base_dream_taq.toFixed(2), resultadosPCR.dream_taq.toFixed(2)]);
-    } else if (resultadosPCR.tipo_pcr === 'inicial') {
-        filas.push(['Primer Forward', resultadosPCR.base_primers.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        filas.push(['Primer Reverse', resultadosPCR.base_primers.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        filas.push(['Polimerasa', resultadosPCR.base_polimerasa.toFixed(2), resultadosPCR.polimerasa.toFixed(2)]);
-    } else if (resultadosPCR.tipo_pcr === 'casera') {
-        filas.push(['MgCl2', resultadosPCR.base_mgcl2.toFixed(2), resultadosPCR.mgcl2.toFixed(2)]);
-        filas.push(['dNTPs', resultadosPCR.base_dntps.toFixed(2), resultadosPCR.dntps.toFixed(2)]);
-        filas.push(['Primer Forward', resultadosPCR.base_fw.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        filas.push(['Primer Reverse', resultadosPCR.base_rv.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        filas.push(['Taq Polimerasa Casera', resultadosPCR.base_polimerasa.toFixed(2), resultadosPCR.polimerasa.toFixed(2)]);
-    }
+        const tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Taq Casera');
 
-    filas.forEach(fila => {
-        doc.text(String(fila[0]), 25, yPos);
-        doc.text(String(fila[1]), 100, yPos);
+        doc.setFontSize(14);
+        doc.setTextColor(25, 135, 84);
         doc.setFont(undefined, 'bold');
-        doc.setTextColor(25, 135, 84); 
-        doc.text(String(fila[2]), 150, yPos);
+        doc.text(`#${index + 1}. ${res.nombre} (${tagProtocolo})`, 20, yPos);
+        yPos += 6;
+
+        doc.setFontSize(10);
+        doc.setTextColor(50, 50, 50);
         doc.setFont(undefined, 'normal');
-        doc.setTextColor(0, 0, 0);
+        doc.text(`Reacciones: ${res.num_reacciones} (+${res.porcentaje_extra}% extra) | Volumen Final por Tubo: ${res.por_tubo} µl`, 20, yPos);
         yPos += 8;
+
+        doc.setFillColor(33, 37, 41);
+        doc.rect(20, yPos, 170, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont(undefined, 'bold');
+        doc.text('Componente Químico', 25, yPos + 6);
+        doc.text('1 Rx (µl)', 110, yPos + 6);
+        doc.text('Master Mix (µl)', 150, yPos + 6);
+
+        yPos += 12;
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'normal');
+
+        let filas = [
+            ['Agua libre de nucleasas', res.base_agua.toFixed(2), res.agua.toFixed(2)],
+            ['Buffer de Reacción', res.base_buffer.toFixed(2), res.buffer.toFixed(2)]
+        ];
+
+        if (res.tipo_pcr === 'dream_taq') {
+            filas.push(['dNTPs (10 mM)', res.base_dntps.toFixed(2), res.dntps.toFixed(2)]);
+            filas.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            filas.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            filas.push(['DreamTaq Polimerasa', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        } else if (res.tipo_pcr === 'inicial') {
+            filas.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            filas.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            filas.push(['Polimerasa Alta Fidelidad', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        } else if (res.tipo_pcr === 'casera') {
+            filas.push(['MgCl2', res.base_mgcl2.toFixed(2), res.mgcl2.toFixed(2)]);
+            filas.push(['dNTPs', res.base_dntps.toFixed(2), res.dntps.toFixed(2)]);
+            filas.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            filas.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            filas.push(['Taq Polimerasa Casera', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        }
+
+        filas.forEach(fila => {
+            doc.text(String(fila[0]), 25, yPos);
+            doc.text(String(fila[1]), 110, yPos);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(13, 110, 253); 
+            doc.text(String(fila[2]), 150, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+            yPos += 6;
+        });
+
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, yPos + 1, 190, yPos + 1);
+        yPos += 7;
+
+        doc.text('Total Master Mix (Alícuota):', 25, yPos);
+        doc.setFont(undefined, 'bold');
+        doc.text(String(res.base_master_mix_tubo.toFixed(2)), 110, yPos);
+        doc.text(String(res.master_mix_sin_adn.toFixed(2)), 150, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 6;
+
+        doc.text('ADN Molde (No mezclar en MM):', 25, yPos);
+        doc.text(String(res.base_adn.toFixed(2)), 110, yPos);
+        doc.text('(Añadir directo a cada tubo)', 150, yPos);
+        yPos += 15; 
     });
 
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, yPos + 2, 190, yPos + 2);
-    yPos += 10;
-
-    doc.text(`Total Master Mix por tubo:`, 25, yPos);
-    doc.setFont(undefined, 'bold');
-    doc.text(String(resultadosPCR.base_master_mix_tubo.toFixed(2)), 100, yPos);
-    doc.text(String(resultadosPCR.master_mix_sin_adn.toFixed(2)), 150, yPos);
-    doc.setFont(undefined, 'normal');
-    yPos += 8;
-
-    doc.text(`ADN Molde (No mezclar en MM):`, 25, yPos);
-    doc.text(String(resultadosPCR.base_adn.toFixed(2)), 100, yPos);
-    doc.text(`(Añadir directo a cada tubo)`, 150, yPos);
-    yPos += 12;
-
-    doc.setFontSize(12);
-    doc.setTextColor(13, 110, 253);
-    doc.text(`VOLUMEN FINAL TOTAL DEL SISTEMA: ${resultadosPCR.total_con_extra.toFixed(2)} µl`, 25, yPos);
-
-    yPos += 25;
-    if (yPos > 270) { doc.addPage(); yPos = 30; }
-       
+    doc.setFontSize(10);
     doc.setFont(undefined, 'italic');
     doc.setTextColor(100, 100, 100);
-    doc.text("Generado por LIMS Lab SDF - MCGGUS", 105, yPos + 10, null, null, 'center');
+    doc.text("Generado automáticamente por LIMS Lab SDF - MCGGUS", 105, 285, null, null, 'center');
 
-    const pseudoNombre = resultadosPCR.tipo_pcr === 'dream_taq' ? 'PCR_DreamTaq' : (resultadosPCR.tipo_pcr === 'casera' ? 'PCR_Casera' : 'PCR_Inicial');
-    doc.save(`${pseudoNombre}_${new Date().getTime()}.pdf`);
+    doc.save(`Lote_PCRs_Multiples_${new Date().getTime()}.pdf`);
 }
 
 function exportarExcel() {
-    if (!resultadosPCR) return;
+    if (!resultadosGlobalesPCR || resultadosGlobalesPCR.length === 0) return;
     let csvRows = [];
-    const banner = resultadosPCR.tipo_pcr === 'dream_taq' ? 'Master Mix: DreamTaq PCR' : (resultadosPCR.tipo_pcr === 'casera' ? 'Master Mix: Taq Casera' : 'Master Mix: PCR Inicial');
-    csvRows.push([banner, '', '']);
-    csvRows.push(['Fecha', resultadosPCR.fecha, '']);
-    csvRows.push(['Reacciones Solicitadas', resultadosPCR.num_reacciones, '']);
-    csvRows.push(['Porcentaje de Holgura', resultadosPCR.porcentaje_extra + '%', '']);
+    const fecha = new Date().toLocaleString('es-ES');
+
+    csvRows.push(['Lote de Master Mixes: PCR Multiple', '', '']);
+    csvRows.push(['Fecha de procesamiento', fecha, '']);
+    csvRows.push(['Total de Master Mixes a preparar', resultadosGlobalesPCR.length, '']);
     csvRows.push([]);
-    csvRows.push(['Componente', '1 Rx (ul)', 'Master Mix Alicuota (ul)']);
-    csvRows.push(['Agua libre de nucleasas', resultadosPCR.base_agua.toFixed(2), resultadosPCR.agua.toFixed(2)]);
-    csvRows.push(['Buffer de Reaccion', resultadosPCR.base_buffer.toFixed(2), resultadosPCR.buffer.toFixed(2)]);
-    
-    if (resultadosPCR.tipo_pcr === 'dream_taq') {
-        csvRows.push(['dNTPs (10 mM)', resultadosPCR.base_dntps.toFixed(2), resultadosPCR.dntps.toFixed(2)]);
-        csvRows.push(['Primer Forward', resultadosPCR.base_fw.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        csvRows.push(['Primer Reverse', resultadosPCR.base_rv.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        csvRows.push(['DreamTaq Polimerasa', resultadosPCR.base_dream_taq.toFixed(2), resultadosPCR.dream_taq.toFixed(2)]);
-    } else if (resultadosPCR.tipo_pcr === 'inicial') {
-        csvRows.push(['Primer Forward', resultadosPCR.base_primers.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        csvRows.push(['Primer Reverse', resultadosPCR.base_primers.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        csvRows.push(['Polimerasa', resultadosPCR.base_polimerasa.toFixed(2), resultadosPCR.polimerasa.toFixed(2)]);
-    } else if (resultadosPCR.tipo_pcr === 'casera') {
-        csvRows.push(['MgCl2', resultadosPCR.base_mgcl2.toFixed(2), resultadosPCR.mgcl2.toFixed(2)]);
-        csvRows.push(['dNTPs', resultadosPCR.base_dntps.toFixed(2), resultadosPCR.dntps.toFixed(2)]);
-        csvRows.push(['Primer Forward', resultadosPCR.base_fw.toFixed(2), resultadosPCR.fw.toFixed(2)]);
-        csvRows.push(['Primer Reverse', resultadosPCR.base_rv.toFixed(2), resultadosPCR.rv.toFixed(2)]);
-        csvRows.push(['Taq Polimerasa Casera', resultadosPCR.base_polimerasa.toFixed(2), resultadosPCR.polimerasa.toFixed(2)]);
-    }
-    
-    csvRows.push([]);
-    csvRows.push(['Volumen Neto Master Mix (Por Tubo)', resultadosPCR.base_master_mix_tubo.toFixed(2), resultadosPCR.master_mix_sin_adn.toFixed(2)]);
-    csvRows.push(['ADN Molde (Carga independiente)', resultadosPCR.base_adn.toFixed(2), '']);
-    csvRows.push(['VOLUMEN FINAL ABSOLUTO', resultadosPCR.por_tubo.toFixed(2), resultadosPCR.total_con_extra.toFixed(2)]);
-    
+
+    resultadosGlobalesPCR.forEach((res, index) => {
+        const tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Casera');
+        
+        csvRows.push([`#${index + 1} - ${res.nombre} (${tagProtocolo})`, '', '']);
+        csvRows.push(['Reacciones Totales', res.num_reacciones, '']);
+        csvRows.push(['Porcentaje Extra de Holgura', res.porcentaje_extra + '%', '']);
+        csvRows.push(['Volumen Final de Reaccion', res.por_tubo, 'ul']);
+        csvRows.push([]);
+
+        csvRows.push(['Componente Quimico', '1 Rx (ul)', 'Master Mix Alicuota (ul)']);
+        csvRows.push(['Agua libre de nucleasas', res.base_agua.toFixed(2), res.agua.toFixed(2)]);
+        csvRows.push(['Buffer de Reaccion', res.base_buffer.toFixed(2), res.buffer.toFixed(2)]);
+
+        if (res.tipo_pcr === 'dream_taq') {
+            csvRows.push(['dNTPs (10 mM)', res.base_dntps.toFixed(2), res.dntps.toFixed(2)]);
+            csvRows.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            csvRows.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            csvRows.push(['DreamTaq Polimerasa', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        } else if (res.tipo_pcr === 'inicial') {
+            csvRows.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            csvRows.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            csvRows.push(['Polimerasa', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        } else if (res.tipo_pcr === 'casera') {
+            csvRows.push(['MgCl2', res.base_mgcl2.toFixed(2), res.mgcl2.toFixed(2)]);
+            csvRows.push(['dNTPs', res.base_dntps.toFixed(2), res.dntps.toFixed(2)]);
+            csvRows.push(['Primer Forward', res.base_fw.toFixed(2), res.fw.toFixed(2)]);
+            csvRows.push(['Primer Reverse', res.base_rv.toFixed(2), res.rv.toFixed(2)]);
+            csvRows.push(['Taq Polimerasa Casera', res.base_polimerasa.toFixed(2), res.polimerasa.toFixed(2)]);
+        }
+
+        csvRows.push([]);
+        csvRows.push(['Total Master Mix (Por Tubo)', res.base_master_mix_tubo.toFixed(2), res.master_mix_sin_adn.toFixed(2)]);
+        csvRows.push(['ADN Molde (Carga independiente a tubos)', res.base_adn.toFixed(2), '']);
+        csvRows.push(['VOLUMEN FINAL ABSOLUTO', res.por_tubo.toFixed(2), res.total_con_extra.toFixed(2)]);
+        csvRows.push([]);
+        csvRows.push([]); 
+    });
+
     let csvContent = csvRows.map(e => e.join(",")).join("\n");
     const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    const tokenFilename = resultadosPCR.tipo_pcr === 'dream_taq' ? 'PCR_DreamTaq' : (resultadosPCR.tipo_pcr === 'casera' ? 'PCR_Casera' : 'PCR_Inicial');
-    link.setAttribute("download", `${tokenFilename}_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `Lote_PCRs_Multiples_${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
 $(document).ready(function() {
-    setTimeout(calcularPCR, 300);
+    generarFormulariosPCR();
 });
 </script>
 {% endblock %}
