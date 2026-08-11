@@ -94,7 +94,7 @@ function generarFormulariosPCR() {
                     <div class="row g-2 mb-3">
                         <div class="col-12">
                             <label class="form-label small mb-0 fw-bold">Nombre del Ensayo:</label>
-                            <input type="text" class="form-control form-control-sm pcr-nombre" data-id="${i}" value="${data.nombre}" placeholder="Ej. Gen (50ul)">
+                            <input type="text" class="form-control form-control-sm pcr-nombre" data-id="${i}" value="${data.nombre}" placeholder="Ej. Gen IPT5 (50ul)">
                         </div>
                         <div class="col-12">
                             <label class="form-label small mb-0 fw-bold">Protocolo / Enzima:</label>
@@ -209,7 +209,6 @@ function calcularTodasLasPCRs() {
             }
 
             resultadosGlobalesPCR = response.resultados;
-
             $('#resultados-estado').html(`<div class="alert alert-success py-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong>Lote Calculado Exitosamente:</strong> ${response.resultados.length} Master Mixes procesados.</div>`);
             
             let tablasGlobalesHTML = '';
