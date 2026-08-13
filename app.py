@@ -10,6 +10,9 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 # RUTAS PRINCIPALES (VISTAS)
 # ============================
 @app.route('/')
+def home(): return render_template('home.html')
+
+@app.route('/pcr')
 def index(): return render_template('index.html')
 
 @app.route('/lv1')
@@ -35,13 +38,18 @@ def recetas_page(): return render_template('recetas.html')
 # API ENDPOINTS (CÁLCULOS)
 # ============================
 
-# 1. PCR UNIFICADA CON SOPORTE MULTI-LOTE (1:N)
 @app.route('/api/pcr_master', methods=['POST'])
 def calcular_pcr_master():
     try:
         data = request.get_json()
         pcrs_input = data.get('pcrs', [])
         resultados_totales = []
+        
+        # Acumuladores para la tabla de sumatoria general del lote
+        totales_lote = {
+            'agua': 0.0, 'buffer': 0.0, 'dntps': 0.0, 
+            'fw': 0.0, 'rv': 0.0, 'polimerasa': 0.0, 'mgcl2': 0.0
+        }
 
         for pcr in pcrs_input:
             tipo_pcr = pcr.get('tipo_pcr', 'dream_taq') 
@@ -63,10 +71,22 @@ def calcular_pcr_master():
                 
                 if base_agua < 0: return jsonify({'error': f'[{nombre_pcr}] El ADN y componentes superan el Volumen Total'}), 400
                 
+                res_agua = round(num_reacciones * base_agua * factor_extra, 2)
+                res_buffer = round(num_reacciones * base_buffer * factor_extra, 2)
+                res_fw = round(num_reacciones * base_fw * factor_extra, 2)
+                res_rv = round(num_reacciones * base_rv * factor_extra, 2)
+                res_polimerasa = round(num_reacciones * base_polimerasa * factor_extra, 2)
+
+                totales_lote['agua'] += res_agua
+                totales_lote['buffer'] += res_buffer
+                totales_lote['fw'] += res_fw
+                totales_lote['rv'] += res_rv
+                totales_lote['polimerasa'] += res_polimerasa
+
                 resultados.update({
                     'tipo_pcr': 'inicial', 'num_reacciones': num_reacciones, 'porcentaje_extra': porcentaje_extra, 'por_tubo': vol_total, 'factor_extra': factor_extra,
                     'base_agua': round(base_agua, 2), 'base_buffer': round(base_buffer, 2), 'base_fw': round(base_fw, 2), 'base_rv': round(base_rv, 2), 'base_polimerasa': round(base_polimerasa, 2), 'base_adn': round(vol_adn, 2), 'base_master_mix_tubo': round(vol_total - vol_adn, 2),
-                    'agua': round(num_reacciones * base_agua * factor_extra, 2), 'buffer': round(num_reacciones * base_buffer * factor_extra, 2), 'fw': round(num_reacciones * base_fw * factor_extra, 2), 'rv': round(num_reacciones * base_rv * factor_extra, 2), 'polimerasa': round(num_reacciones * base_polimerasa * factor_extra, 2), 'adn': round(num_reacciones * vol_adn, 2),
+                    'agua': res_agua, 'buffer': res_buffer, 'fw': res_fw, 'rv': res_rv, 'polimerasa': res_polimerasa, 'adn': round(num_reacciones * vol_adn, 2),
                     'master_mix_sin_adn': round((num_reacciones * (vol_total - vol_adn)) * factor_extra, 2), 'total_con_extra': round(((num_reacciones * (vol_total - vol_adn)) * factor_extra) + (num_reacciones * vol_adn), 2)
                 })
 
@@ -80,10 +100,24 @@ def calcular_pcr_master():
                 
                 if base_agua < 0: return jsonify({'error': f'[{nombre_pcr}] El ADN y componentes superan el Volumen Total'}), 400
                 
+                res_agua = round(num_reacciones * base_agua * factor_extra, 2)
+                res_buffer = round(num_reacciones * base_buffer * factor_extra, 2)
+                res_dntps = round(num_reacciones * base_dntps * factor_extra, 2)
+                res_fw = round(num_reacciones * base_fw * factor_extra, 2)
+                res_rv = round(num_reacciones * base_rv * factor_extra, 2)
+                res_polimerasa = round(num_reacciones * base_polimerasa * factor_extra, 2)
+
+                totales_lote['agua'] += res_agua
+                totales_lote['buffer'] += res_buffer
+                totales_lote['dntps'] += res_dntps
+                totales_lote['fw'] += res_fw
+                totales_lote['rv'] += res_rv
+                totales_lote['polimerasa'] += res_polimerasa
+
                 resultados.update({
                     'tipo_pcr': 'dream_taq', 'num_reacciones': num_reacciones, 'porcentaje_extra': porcentaje_extra, 'por_tubo': vol_total, 'factor_extra': factor_extra,
                     'base_agua': round(base_agua, 2), 'base_buffer': round(base_buffer, 2), 'base_dntps': round(base_dntps, 2), 'base_fw': round(base_fw, 2), 'base_rv': round(base_rv, 2), 'base_polimerasa': round(base_polimerasa, 2), 'base_adn': round(vol_adn, 2), 'base_master_mix_tubo': round(vol_total - vol_adn, 2),
-                    'agua': round(num_reacciones * base_agua * factor_extra, 2), 'buffer': round(num_reacciones * base_buffer * factor_extra, 2), 'dntps': round(num_reacciones * base_dntps * factor_extra, 2), 'fw': round(num_reacciones * base_fw * factor_extra, 2), 'rv': round(num_reacciones * base_rv * factor_extra, 2), 'polimerasa': round(num_reacciones * base_polimerasa * factor_extra, 2), 'adn': round(num_reacciones * vol_adn, 2),
+                    'agua': res_agua, 'buffer': res_buffer, 'dntps': res_dntps, 'fw': res_fw, 'rv': res_rv, 'polimerasa': res_polimerasa, 'adn': round(num_reacciones * vol_adn, 2),
                     'master_mix_sin_adn': round((num_reacciones * (vol_total - vol_adn)) * factor_extra, 2), 'total_con_extra': round(((num_reacciones * (vol_total - vol_adn)) * factor_extra) + (num_reacciones * vol_adn), 2)
                 })
 
@@ -98,21 +132,41 @@ def calcular_pcr_master():
                 
                 if base_agua < 0: return jsonify({'error': f'[{nombre_pcr}] El ADN y componentes superan el Volumen Total'}), 400
                 
+                res_agua = round(num_reacciones * base_agua * factor_extra, 2)
+                res_buffer = round(num_reacciones * base_buffer * factor_extra, 2)
+                res_mgcl2 = round(num_reacciones * base_mgcl2 * factor_extra, 2)
+                res_dntps = round(num_reacciones * base_dntps * factor_extra, 2)
+                res_fw = round(num_reacciones * base_fw * factor_extra, 2)
+                res_rv = round(num_reacciones * base_rv * factor_extra, 2)
+                res_polimerasa = round(num_reacciones * base_polimerasa * factor_extra, 2)
+
+                totales_lote['agua'] += res_agua
+                totales_lote['buffer'] += res_buffer
+                totales_lote['mgcl2'] += res_mgcl2
+                totales_lote['dntps'] += res_dntps
+                totales_lote['fw'] += res_fw
+                totales_lote['rv'] += res_rv
+                totales_lote['polimerasa'] += res_polimerasa
+
                 resultados.update({
                     'tipo_pcr': 'casera', 'num_reacciones': num_reacciones, 'porcentaje_extra': porcentaje_extra, 'por_tubo': vol_total, 'factor_extra': factor_extra,
                     'base_agua': round(base_agua, 2), 'base_buffer': round(base_buffer, 2), 'base_mgcl2': round(base_mgcl2, 2), 'base_dntps': round(base_dntps, 2), 'base_fw': round(base_fw, 2), 'base_rv': round(base_rv, 2), 'base_polimerasa': round(base_polimerasa, 2), 'base_adn': round(vol_adn, 2), 'base_master_mix_tubo': round(vol_total - vol_adn, 2),
-                    'agua': round(num_reacciones * base_agua * factor_extra, 2), 'buffer': round(num_reacciones * base_buffer * factor_extra, 2), 'mgcl2': round(num_reacciones * base_mgcl2 * factor_extra, 2), 'dntps': round(num_reacciones * base_dntps * factor_extra, 2), 'fw': round(num_reacciones * base_fw * factor_extra, 2), 'rv': round(num_reacciones * base_rv * factor_extra, 2), 'polimerasa': round(num_reacciones * base_polimerasa * factor_extra, 2), 'adn': round(num_reacciones * vol_adn, 2),
+                    'agua': res_agua, 'buffer': res_buffer, 'mgcl2': res_mgcl2, 'dntps': res_dntps, 'fw': res_fw, 'rv': res_rv, 'polimerasa': res_polimerasa, 'adn': round(num_reacciones * vol_adn, 2),
                     'master_mix_sin_adn': round((num_reacciones * (vol_total - vol_adn)) * factor_extra, 2), 'total_con_extra': round(((num_reacciones * (vol_total - vol_adn)) * factor_extra) + (num_reacciones * vol_adn), 2)
                 })
 
             resultados_totales.append(resultados)
 
-        return jsonify({'resultados': resultados_totales})
+        # Redondear sumatorias finales del lote
+        for k in totales_lote:
+            totales_lote[k] = round(totales_lote[k], 2)
+
+        return jsonify({'resultados': resultados_totales, 'sumatoria_lote': totales_lote})
     except Exception as e:
         traceback.print_exc()
         return jsonify({'error': str(e)}), 400
 
-# 2. CALCULADORA DE MOLARIDAD
+# Demás rutas API existentes (Molaridad, Lv1, Lv2, Medios, Generales)
 @app.route('/api/molaridad', methods=['POST'])
 def calc_molaridad():
     try:
@@ -120,29 +174,20 @@ def calc_molaridad():
         tipo_calculo = data.get('tipo_calculo', 'gramos')
         peso_molecular = float(data.get('peso_molecular', 0))
         volumen_ml = float(data.get('volumen_ml', 0))
-        
-        if peso_molecular <= 0 or volumen_ml <= 0:
-            return jsonify({'error': 'El peso molecular y el volumen deben ser mayores a cero.'}), 400
-            
+        if peso_molecular <= 0 or volumen_ml <= 0: return jsonify({'error': 'Valores inválidos.'}), 400
         volumen_l = volumen_ml / 1000.0
         resultados = {'tipo_calculo': tipo_calculo, 'peso_molecular': peso_molecular, 'volumen_ml': volumen_ml, 'volumen_l': volumen_l}
-
         if tipo_calculo == 'gramos':
-            concentracion_m = float(data.get('concentracion_m', 0))
-            gramos = concentracion_m * peso_molecular * volumen_l
-            resultados['concentracion_m'] = concentracion_m
-            resultados['gramos_resultado'] = round(gramos, 4)
+            conc_m = float(data.get('concentracion_m', 0))
+            resultados['concentracion_m'] = conc_m
+            resultados['gramos_resultado'] = round(conc_m * peso_molecular * volumen_l, 4)
         else:
-            gramos_pesados = float(data.get('gramos_pesados', 0))
-            molaridad = gramos_pesados / (peso_molecular * volumen_l)
-            resultados['gramos_pesados'] = gramos_pesados
-            resultados['molaridad_resultado'] = round(molaridad, 4)
-            
+            gramos = float(data.get('gramos_pesados', 0))
+            resultados['gramos_pesados'] = gramos
+            resultados['molaridad_resultado'] = round(gramos / (peso_molecular * volumen_l), 4)
         return jsonify(resultados)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
-# 3. NIVEL 1 LIGACIONES
 @app.route('/api/lv1', methods=['POST'])
 def calcular_lv1():
     try:
@@ -150,124 +195,100 @@ def calcular_lv1():
         ligaciones_input = data.get('ligaciones', [])
         resultados_ligaciones = []
         VOL_TOTAL, VOL_BUFFER_T4, VOL_BSAI, VOL_T4_LIGASA, FMOLES_OBJETIVO = 15.0, 1.5, 1.0, 0.5, 40.0
-        
         for ligacion in ligaciones_input:
             c_frag, pb_frag, dilucion = float(ligacion.get('conc_fragmento', 0)), float(ligacion.get('pb_fragmento', 1)), float(ligacion.get('dilucion', 1))
             c_p1, pb_p1 = float(ligacion.get('conc_plasmid1', 0)), float(ligacion.get('pb_plasmid1', 1))
             c_p2, pb_p2 = float(ligacion.get('conc_plasmid2', 0)), float(ligacion.get('pb_plasmid2', 1))
-            
-            fmol_ul_frag_diluido = ((c_frag * 1000000) / (pb_frag * 660)) / dilucion if pb_frag > 0 else 0
-            fmol_ul_p1 = (c_p1 * 1000000) / (pb_p1 * 660) if pb_p1 > 0 else 0
-            fmol_ul_p2 = (c_p2 * 1000000) / (pb_p2 * 660) if pb_p2 > 0 else 0
-            
-            vol_frag = FMOLES_OBJETIVO / fmol_ul_frag_diluido if fmol_ul_frag_diluido > 0 else 0
-            vol_p1 = FMOLES_OBJETIVO / fmol_ul_p1 if fmol_ul_p1 > 0 else 0
-            vol_p2 = FMOLES_OBJETIVO / fmol_ul_p2 if fmol_ul_p2 > 0 else 0
-            
+            fmol_frag = ((c_frag * 1000000) / (pb_frag * 660)) / dilucion if pb_frag > 0 else 0
+            fmol_p1 = (c_p1 * 1000000) / (pb_p1 * 660) if pb_p1 > 0 else 0
+            fmol_p2 = (c_p2 * 1000000) / (pb_p2 * 660) if pb_p2 > 0 else 0
+            vol_frag = FMOLES_OBJETIVO / fmol_frag if fmol_frag > 0 else 0
+            vol_p1 = FMOLES_OBJETIVO / fmol_p1 if fmol_p1 > 0 else 0
+            vol_p2 = FMOLES_OBJETIVO / fmol_p2 if fmol_p2 > 0 else 0
             agua = max(0, VOL_TOTAL - (VOL_BUFFER_T4 + VOL_BSAI + VOL_T4_LIGASA + vol_frag + vol_p1 + vol_p2))
-            
             resultados_ligaciones.append({
                 'tipo_ligacion': ligacion.get('tipo_ligacion', 'N/A'), 'agua': round(agua, 2), 'buffer_t4': VOL_BUFFER_T4, 
                 'bsai': VOL_BSAI, 't4_ligasa': VOL_T4_LIGASA, 'fragmento_pcr': round(vol_frag, 2), 'plasmid1': round(vol_p1, 2), 
                 'plasmid2': round(vol_p2, 2), 'total': VOL_TOTAL, 'fmoles_fragmento': FMOLES_OBJETIVO, 
-                'fmoles_diluidos_fragmento': round(fmol_ul_frag_diluido, 2), 'fmoles_plasmid1': FMOLES_OBJETIVO, 'fmoles_plasmid2': FMOLES_OBJETIVO
+                'fmoles_diluidos_fragmento': round(fmol_frag, 2), 'fmoles_plasmid1': FMOLES_OBJETIVO, 'fmoles_plasmid2': FMOLES_OBJETIVO
             })
         return jsonify({'ligaciones': resultados_ligaciones})
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
-# 4. NIVEL 2 ENSAMBLAJES
 @app.route('/api/lv2', methods=['POST'])
 def calcular_lv2():
     try:
         data = request.get_json()
         num_guias = int(data.get('num_guias', 1))
-        conc_plasmid1, pb_plasmid1 = float(data.get('conc_plasmid1', 132.2)), float(data.get('pb_plasmid1', 6234))
-        conc_plasmid2, pb_plasmid2 = float(data.get('conc_plasmid2', 137)), float(data.get('pb_plasmid2', 9623))
+        conc_p1, pb_p1 = float(data.get('conc_plasmid1', 132.2)), float(data.get('pb_plasmid1', 6234))
+        conc_p2, pb_p2 = float(data.get('conc_plasmid2', 137)), float(data.get('pb_plasmid2', 9623))
         volumen_total, buffer_t4, bpii, t4_ligasa = 20, 2, 1, 0.5
-        
-        pmoles_plasmid1 = (conc_plasmid1 * 1000000) / (660 * pb_plasmid1) * 1000
-        pmoles_plasmid2 = (conc_plasmid2 * 1000000) / (660 * pb_plasmid2) * 1000
-        vol_plasmid1 = 40 / (pmoles_plasmid1 / 1000) if pmoles_plasmid1 > 0 else 0
-        vol_plasmid2 = 40 / (pmoles_plasmid2 / 1000) if pmoles_plasmid2 > 0 else 0
-        
+        pmol_p1 = (conc_p1 * 1000000) / (660 * pb_p1) * 1000
+        pmol_p2 = (conc_p2 * 1000000) / (660 * pb_p2) * 1000
+        vol_p1 = 40 / (pmol_p1 / 1000) if pmol_p1 > 0 else 0
+        vol_p2 = 40 / (pmol_p2 / 1000) if pmol_p2 > 0 else 0
         guias_data = data.get('guias', [])
-        volumen_guias_total = 0
-        resultados_guias, fmol_guias = {}, {}
-        
+        vol_guias_tot, res_guias, fmol_g = 0, {}, {}
         for i in range(num_guias):
-            conc_g, pb_g = (float(guias_data[i].get('conc', 180.2)), float(guias_data[i].get('pb', 4588))) if i < len(guias_data) else (180.2, 4588)
-            pmol_g = (conc_g * 1000000) / (660 * pb_g) * 1000
+            c_g, pb_g = (float(guias_data[i].get('conc', 180.2)), float(guias_data[i].get('pb', 4588))) if i < len(guias_data) else (180.2, 4588)
+            pmol_g = (c_g * 1000000) / (660 * pb_g) * 1000
             vol_g = 40 / (pmol_g / 1000) if pmol_g > 0 else 0
-            resultados_guias[f'guia{i+1}_vol'] = round(vol_g, 2)
-            fmol_guias[f'guia{i+1}'] = round(pmol_g / 1000, 2)
-            volumen_guias_total += vol_g
-            
-        agua = max(0, volumen_total - (buffer_t4 + bpii + t4_ligasa + vol_plasmid1 + vol_plasmid2 + volumen_guias_total))
-        resultados = {
-            'agua': round(agua, 2), 'buffer_t4': buffer_t4, 'bpii': bpii, 't4_ligasa': t4_ligasa, 'plasmid1': round(vol_plasmid1, 2), 
-            'plasmid2': round(vol_plasmid2, 2), 'volumen_total': volumen_total, 'num_guias': num_guias, 
-            'fmol_plasmid1': round(pmoles_plasmid1 / 1000, 2), 'fmol_plasmid2': round(pmoles_plasmid2 / 1000, 2), 'fmol_guias': fmol_guias
+            res_guias[f'guia{i+1}_vol'] = round(vol_g, 2)
+            fmol_g[f'guia{i+1}'] = round(pmol_g / 1000, 2)
+            vol_guias_tot += vol_g
+        agua = max(0, volumen_total - (buffer_t4 + bpii + t4_ligasa + vol_p1 + vol_p2 + vol_guias_tot))
+        res = {
+            'agua': round(agua, 2), 'buffer_t4': buffer_t4, 'bpii': bpii, 't4_ligasa': t4_ligasa, 'plasmid1': round(vol_p1, 2), 
+            'plasmid2': round(vol_p2, 2), 'volumen_total': volumen_total, 'num_guias': num_guias, 
+            'fmol_plasmid1': round(pmol_p1 / 1000, 2), 'fmol_plasmid2': round(pmol_p2 / 1000, 2), 'fmol_guias': fmol_g
         }
-        resultados.update(resultados_guias)
-        return jsonify(resultados)
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+        res.update(res_guias)
+        return jsonify(res)
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
-# 5. MEDIOS DE CULTIVO
 @app.route('/api/medios', methods=['POST'])
 def calcular_medios():
     try:
         data = request.get_json()
-        tipo_medio = data.get('tipo_medio', 'germinacion')
-        volumen_preparar = float(data.get('volumen_preparar', 1000))
-        
-        if tipo_medio == 'germinacion':
-            resultados = {'h2o_ml': volumen_preparar, 'ms_g': round((volumen_preparar * 2.4) / 1000, 2), 'sacarosa_g': round((volumen_preparar * 15) / 1000, 2), 'agar_g': round((volumen_preparar * 8) / 1000, 2), 'ph': 5.8}
-        elif tipo_medio == 'co_culture':
-            resultados = {'h2o_ml': volumen_preparar, 'ms_g': round((volumen_preparar * 4.8) / 1000, 2), 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2), 'agar_g': round((volumen_preparar * 8) / 1000, 2), 'd24_ul': round(volumen_preparar * 0.2, 2), 'kinetina_ul': round(volumen_preparar * 0.1, 2), 'ph': 5.8}
-        elif tipo_medio == 'selection':
-            resultados = {'h2o_ml': volumen_preparar, 'ms_g': round((volumen_preparar * 4.8) / 1000, 2), 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2), 'agar_g': round((volumen_preparar * 8) / 1000, 2), 'tzeatina_ul': round(volumen_preparar * 1.0, 2), 'meropenem_ul': round(volumen_preparar * 0.5, 2), 'kanamicina_ul': round(volumen_preparar * 0.75, 2), 'ph': 5.8}
-        elif tipo_medio == 'rooting':
-            resultados = {'h2o_ml': volumen_preparar, 'ms_g': round((volumen_preparar * 4.8) / 1000, 2), 'sacarosa_g': round((volumen_preparar * 30) / 1000, 2), 'agar_g': round((volumen_preparar * 8) / 1000, 2), 'iaa_ul': round(volumen_preparar * 1.0, 2), 'meropenem_ul': round(volumen_preparar * 0.5, 2), 'kanamicina_ul': round(volumen_preparar * 0.75, 2), 'ph': 5.8}
-        return jsonify(resultados)
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+        tipo = data.get('tipo_medio', 'germinacion')
+        vol = float(data.get('volumen_preparar', 1000))
+        if tipo == 'germinacion': res = {'h2o_ml': vol, 'ms_g': round(vol*2.4/1000, 2), 'sacarosa_g': round(vol*15/1000, 2), 'agar_g': round(vol*8/1000, 2), 'ph': 5.8}
+        elif tipo == 'co_culture': res = {'h2o_ml': vol, 'ms_g': round(vol*4.8/1000, 2), 'sacarosa_g': round(vol*30/1000, 2), 'agar_g': round(vol*8/1000, 2), 'd24_ul': round(vol*0.2, 2), 'kinetina_ul': round(vol*0.1, 2), 'ph': 5.8}
+        elif tipo == 'selection': res = {'h2o_ml': vol, 'ms_g': round(vol*4.8/1000, 2), 'sacarosa_g': round(vol*30/1000, 2), 'agar_g': round(vol*8/1000, 2), 'tzeatina_ul': round(vol*1.0, 2), 'meropenem_ul': round(vol*0.5, 2), 'kanamicina_ul': round(vol*0.75, 2), 'ph': 5.8}
+        elif tipo == 'rooting': res = {'h2o_ml': vol, 'ms_g': round(vol*4.8/1000, 2), 'sacarosa_g': round(vol*30/1000, 2), 'agar_g': round(vol*8/1000, 2), 'iaa_ul': round(vol*1.0, 2), 'meropenem_ul': round(vol*0.5, 2), 'kanamicina_ul': round(vol*0.75, 2), 'ph': 5.8}
+        return jsonify(res)
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
-# 6. CÁLCULOS GENERALES (DILUCIONES, PRIMERS, DIGESTIÓN)
 @app.route('/api/diluciones', methods=['POST'])
 def calc_diluciones():
     try:
-        data = request.get_json()
-        c1, c2, v2 = float(data.get('c1', 0)), float(data.get('c2', 0)), float(data.get('v2', 0))
-        if c1 == 0 or c2 > c1: return jsonify({'error': 'C1 inválido o menor a C2.'}), 400
+        d = request.get_json()
+        c1, c2, v2 = float(d.get('c1', 0)), float(d.get('c2', 0)), float(d.get('v2', 0))
+        if c1 == 0 or c2 > c1: return jsonify({'error': 'C1 inválido.'}), 400
         v1 = (c2 * v2) / c1
         return jsonify({'v1': round(v1, 4), 'solvente': round(v2 - v1, 4), 'v2': v2})
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
 @app.route('/api/primers', methods=['POST'])
 def calc_primers():
     try:
-        data = request.get_json()
-        nmol, conc_final = float(data.get('nmol', 0)), float(data.get('conc_final', 100))
-        if conc_final == 0: return jsonify({'error': 'La concentración no puede ser 0.'}), 400
-        return jsonify({'volumen_ul': round((nmol * 1000) / conc_final, 2), 'nmol': nmol, 'conc_final': conc_final})
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+        d = request.get_json()
+        nmol, conc = float(d.get('nmol', 0)), float(d.get('conc_final', 100))
+        if conc == 0: return jsonify({'error': 'Concentración 0.'}), 400
+        return jsonify({'volumen_ul': round((nmol * 1000) / conc, 2), 'nmol': nmol, 'conc_final': conc})
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
 @app.route('/api/digestion', methods=['POST'])
 def calc_digestion():
     try:
-        data = request.get_json()
-        reacciones, extra, vol_total, vol_adn, vol_enzima1, vol_enzima2 = float(data.get('reacciones', 1)), float(data.get('extra', 10)) / 100.0, float(data.get('vol_total', 20)), float(data.get('vol_adn', 1)), float(data.get('vol_enzima1', 0.5)), float(data.get('vol_enzima2', 0))
-        vol_buffer = vol_total * 0.10
-        vol_agua = vol_total - (vol_adn + vol_enzima1 + vol_enzima2 + vol_buffer)
-        if vol_agua < 0: return jsonify({'error': 'Componentes superan el volumen total.'}), 400
-        factor = reacciones * (1 + extra)
-        return jsonify({'agua_rx': round(vol_agua, 2), 'agua_mm': round(vol_agua * factor, 2), 'buffer_rx': round(vol_buffer, 2), 'buffer_mm': round(vol_buffer * factor, 2), 'enzima1_rx': round(vol_enzima1, 2), 'enzima1_mm': round(vol_enzima1 * factor, 2), 'enzima2_rx': round(vol_enzima2, 2), 'enzima2_mm': round(vol_enzima2 * factor, 2), 'adn_rx': round(vol_adn, 2), 'total_rx': round(vol_total, 2), 'reacciones': reacciones, 'extra': data.get('extra', 10)})
-    except Exception as e: 
-        return jsonify({'error': str(e)}), 400
+        d = request.get_json()
+        rx, extra, vt, adn, e1, e2 = float(d.get('reacciones', 1)), float(d.get('extra', 10))/100.0, float(d.get('vol_total', 20)), float(d.get('vol_adn', 1)), float(d.get('vol_enzima1', 0.5)), float(d.get('vol_enzima2', 0))
+        buf = vt * 0.10
+        agua = vt - (adn + e1 + e2 + buf)
+        if agua < 0: return jsonify({'error': 'Supera volumen total.'}), 400
+        fact = rx * (1 + extra)
+        return jsonify({'agua_rx': round(agua, 2), 'agua_mm': round(agua * fact, 2), 'buffer_rx': round(buf, 2), 'buffer_mm': round(buf * fact, 2), 'enzima1_rx': round(e1, 2), 'enzima1_mm': round(e1 * fact, 2), 'enzima2_rx': round(e2, 2), 'enzima2_mm': round(e2 * fact, 2), 'adn_rx': round(adn, 2), 'total_rx': round(vt, 2), 'reacciones': rx, 'extra': d.get('extra', 10)})
+    except Exception as e: return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

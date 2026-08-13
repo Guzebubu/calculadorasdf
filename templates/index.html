@@ -4,6 +4,7 @@
 <div class="row fade-in">
     <div class="col-md-12">
         <div class="card mb-4 border-primary">
+            <!-- HEADER SIN EL BOTÓN VIEJO -->
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-droplet-fill"></i> Súper Calculadora PCR - Lote Múltiple</h5>
             </div>
@@ -24,10 +25,18 @@
 
                 <form id="pcrMultiForm" autocomplete="off">
                     <div class="row" id="pcrs-container">
-                        <!-- Las tarjetas dinámicas se inyectan aquí -->
+                        <!-- Tarjetas dinámicas -->
                     </div>
                     
-                    <div class="text-center mt-4">
+                    <!-- SWITCH OPCIONAL PARA SUMATORIA -->
+                    <div class="form-check form-switch mt-2 mb-4 d-flex justify-content-center align-items-center">
+                        <input class="form-check-input me-2 fs-4" type="checkbox" id="checkSumatoria">
+                        <label class="form-check-label fw-bold text-success fs-6 mt-1" for="checkSumatoria">
+                            <i class="bi bi-plus-circle"></i> Generar Sumatoria General del Lote
+                        </label>
+                    </div>
+
+                    <div class="text-center">
                         <button type="button" class="btn btn-primary btn-lg px-5 shadow-sm" onclick="calcularTodasLasPCRs()">
                             <i class="bi bi-calculator"></i> Calcular Todas las PCRs
                         </button>
@@ -40,9 +49,9 @@
 
 <div class="row fade-in">
     <div class="col-md-12">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm mb-4">
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Tablas de Resultados (Lote)</h5>
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Tablas de Resultados y Resumen General</h5>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-danger btn-sm text-white shadow-sm" onclick="exportarPDF()" id="pdfButton" disabled>
                         <i class="bi bi-file-pdf me-1"></i> PDF
@@ -57,8 +66,36 @@
                     <p class="text-muted mb-0"><i class="bi bi-arrow-up-circle fs-4 d-block mb-2"></i> Configura tus PCRs y presiona "Calcular Todas"</p>
                 </div>
 
+                <!-- CONTENEDOR DE LA SUMATORIA GENERAL DEL LOTE -->
+                <div id="contenedor-sumatoria-lote" class="mb-4" style="display: none;">
+                    <div class="card border-success shadow-sm">
+                        <div class="card-header bg-success bg-opacity-10 text-success fw-bold">
+                            <i class="bi bi-plus-circle-fill"></i> Resumen General del Lote (Suma Total de Reactivos a Preparar)
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                                    <thead class="table-success text-dark">
+                                        <tr>
+                                            <th>Agua Total (µl)</th>
+                                            <th>Buffer Total (µl)</th>
+                                            <th>dNTPs / MgCl2 (µl)</th>
+                                            <th>Primer Fw Total (µl)</th>
+                                            <th>Primer Rv Total (µl)</th>
+                                            <th>Polimerasa Total (µl)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-sumatoria-cuerpo" class="fw-bold text-success">
+                                        <!-- Inyección dinámica de sumas -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="contenedor-tablas-resultados" class="row">
-                    <!-- Aquí se renderizarán múltiples tablas -->
+                    <!-- Tablas individuales -->
                 </div>
             </div>
         </div>
@@ -69,6 +106,7 @@
 {% block scripts %}
 <script>
 let resultadosGlobalesPCR = null;
+let sumatoriaGlobalLote = null;
 let memoriaPCRs = {};
 
 function generarFormulariosPCR() {
@@ -94,7 +132,7 @@ function generarFormulariosPCR() {
                     <div class="row g-2 mb-3">
                         <div class="col-12">
                             <label class="form-label small mb-0 fw-bold">Nombre del Ensayo:</label>
-                            <input type="text" class="form-control form-control-sm pcr-nombre" data-id="${i}" value="${data.nombre}" placeholder="Ej. Gen IPT5 (50ul)">
+                            <input type="text" class="form-control form-control-sm pcr-nombre" data-id="${i}" value="${data.nombre}" placeholder="Ej. Gen (10ul o 50ul)">
                         </div>
                         <div class="col-12">
                             <label class="form-label small mb-0 fw-bold">Protocolo / Enzima:</label>
@@ -193,9 +231,9 @@ function calcularTodasLasPCRs() {
         payload_array.push(pcr_data);
     }
 
-    $('#contenedor-tablas-resultados').empty();
+    $('#contenedor-tablas-resultados, #contenedor-sumatoria-lote').hide();
     $('#pdfButton, #excelButton').prop('disabled', true);
-    $('#resultados-estado').removeClass('bg-light').addClass('bg-white border-primary').html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-primary">Calculando lote bioquímico...</p>');
+    $('#resultados-estado').removeClass('bg-light').addClass('bg-white border-primary').html('<div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-primary">Procesando lote...</p>');
 
     $.ajax({
         url: '/api/pcr_master',
@@ -209,10 +247,28 @@ function calcularTodasLasPCRs() {
             }
 
             resultadosGlobalesPCR = response.resultados;
-            $('#resultados-estado').html(`<div class="alert alert-success py-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong>Lote Calculado Exitosamente:</strong> ${response.resultados.length} Master Mixes procesados.</div>`);
+            sumatoriaGlobalLote = response.sumatoria_lote;
+
+            $('#resultados-estado').html(`<div class="alert alert-success py-2 mb-3"><i class="bi bi-check-circle-fill"></i> <strong>Cálculo Exitoso:</strong> ${response.resultados.length} Master Mixes listos.</div>`);
             
+            // LÓGICA CONDICIONAL: Mostrar sumatoria solo si el switch está activado
+            if ($('#checkSumatoria').is(':checked')) {
+                let sumHTML = `
+                    <tr>
+                        <td>${sumatoriaGlobalLote.agua} µl</td>
+                        <td>${sumatoriaGlobalLote.buffer} µl</td>
+                        <td>${(sumatoriaGlobalLote.dntps + sumatoriaGlobalLote.mgcl2).toFixed(2)} µl</td>
+                        <td>${sumatoriaGlobalLote.fw} µl</td>
+                        <td>${sumatoriaGlobalLote.rv} µl</td>
+                        <td>${sumatoriaGlobalLote.polimerasa} µl</td>
+                    </tr>
+                `;
+                $('#tabla-sumatoria-cuerpo').html(sumHTML);
+                $('#contenedor-sumatoria-lote').fadeIn();
+            }
+
+            // Renderizar tarjetas individuales
             let tablasGlobalesHTML = '';
-            
             response.resultados.forEach((res, index) => {
                 let badgeColor = res.tipo_pcr === 'dream_taq' ? 'bg-primary' : (res.tipo_pcr === 'inicial' ? 'bg-danger' : 'bg-secondary');
                 let tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Taq Casera');
@@ -278,11 +334,11 @@ function calcularTodasLasPCRs() {
                 </div>`;
             });
 
-            $('#contenedor-tablas-resultados').html(tablasGlobalesHTML);
+            $('#contenedor-tablas-resultados').html(tablasGlobalesHTML).fadeIn();
             $('#pdfButton, #excelButton').prop('disabled', false); 
         },
         error: function() {
-            $('#resultados-estado').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión local/servidor.</div>');
+            $('#resultados-estado').html('<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Error de conexión.</div>');
         }
     });
 }
@@ -304,15 +360,34 @@ function exportarPDF() {
 
     let yPos = 45;
 
+    // Solo imprime sumatoria si el usuario activó la opción
+    if (sumatoriaGlobalLote && $('#checkSumatoria').is(':checked')) {
+        doc.setFillColor(25, 135, 84);
+        doc.rect(20, yPos, 170, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont(undefined, 'bold');
+        doc.text('RESUMEN GENERAL DEL LOTE (SUMA TOTAL DE REACTIVOS)', 25, yPos + 6);
+        yPos += 10;
+
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`- Agua Total: ${sumatoriaGlobalLote.agua} µl | Buffer Total: ${sumatoriaGlobalLote.buffer} µl`, 25, yPos);
+        yPos += 6;
+        doc.text(`- dNTPs/MgCl2 Totales: ${(sumatoriaGlobalLote.dntps + sumatoriaGlobalLote.mgcl2).toFixed(2)} µl | Fw Total: ${sumatoriaGlobalLote.fw} µl`, 25, yPos);
+        yPos += 6;
+        doc.text(`- Rv Total: ${sumatoriaGlobalLote.rv} µl | Polimerasa Total: ${sumatoriaGlobalLote.polimerasa} µl`, 25, yPos);
+        yPos += 12;
+    }
+
     resultadosGlobalesPCR.forEach((res, index) => {
-        if (yPos > 240) {
+        if (yPos > 230) {
             doc.addPage();
             yPos = 20;
         }
 
         const tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Taq Casera');
 
-        doc.setFontSize(14);
+        doc.setFontSize(13);
         doc.setTextColor(25, 135, 84);
         doc.setFont(undefined, 'bold');
         doc.text(`#${index + 1}. ${res.nombre} (${tagProtocolo})`, 20, yPos);
@@ -322,17 +397,17 @@ function exportarPDF() {
         doc.setTextColor(50, 50, 50);
         doc.setFont(undefined, 'normal');
         doc.text(`Reacciones: ${res.num_reacciones} (+${res.porcentaje_extra}% extra) | Volumen Final por Tubo: ${res.por_tubo} µl`, 20, yPos);
-        yPos += 8;
+        yPos += 7;
 
         doc.setFillColor(33, 37, 41);
-        doc.rect(20, yPos, 170, 8, 'F');
+        doc.rect(20, yPos, 170, 7, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFont(undefined, 'bold');
-        doc.text('Componente Químico', 25, yPos + 6);
-        doc.text('1 Rx (µl)', 110, yPos + 6);
-        doc.text('Master Mix (µl)', 150, yPos + 6);
+        doc.text('Componente Químico', 25, yPos + 5);
+        doc.text('1 Rx (µl)', 110, yPos + 5);
+        doc.text('Master Mix (µl)', 150, yPos + 5);
 
-        yPos += 12;
+        yPos += 10;
         doc.setTextColor(0, 0, 0);
         doc.setFont(undefined, 'normal');
 
@@ -371,7 +446,7 @@ function exportarPDF() {
 
         doc.setDrawColor(200, 200, 200);
         doc.line(20, yPos + 1, 190, yPos + 1);
-        yPos += 7;
+        yPos += 6;
 
         doc.text('Total Master Mix (Alícuota):', 25, yPos);
         doc.setFont(undefined, 'bold');
@@ -383,7 +458,7 @@ function exportarPDF() {
         doc.text('ADN Molde (No mezclar en MM):', 25, yPos);
         doc.text(String(res.base_adn.toFixed(2)), 110, yPos);
         doc.text('(Añadir directo a cada tubo)', 150, yPos);
-        yPos += 15; 
+        yPos += 14; 
     });
 
     doc.setFontSize(10);
@@ -401,15 +476,28 @@ function exportarExcel() {
 
     csvRows.push(['Lote de Master Mixes: PCR Multiple', '', '']);
     csvRows.push(['Fecha de procesamiento', fecha, '']);
-    csvRows.push(['Total de Master Mixes a preparar', resultadosGlobalesPCR.length, '']);
+    csvRows.push(['Total de Master Mixes', resultadosGlobalesPCR.length, '']);
     csvRows.push([]);
+
+    // Solo imprime sumatoria si el usuario activó la opción
+    if (sumatoriaGlobalLote && $('#checkSumatoria').is(':checked')) {
+        csvRows.push(['RESUMEN GENERAL DEL LOTE (SUMA TOTAL DE REACTIVOS)', '', '']);
+        csvRows.push(['Agua Total (ul)', sumatoriaGlobalLote.agua, '']);
+        csvRows.push(['Buffer Total (ul)', sumatoriaGlobalLote.buffer, '']);
+        csvRows.push(['dNTPs / MgCl2 Totales (ul)', (sumatoriaGlobalLote.dntps + sumatoriaGlobalLote.mgcl2).toFixed(2), '']);
+        csvRows.push(['Primer Fw Total (ul)', sumatoriaGlobalLote.fw, '']);
+        csvRows.push(['Primer Rv Total (ul)', sumatoriaGlobalLote.rv, '']);
+        csvRows.push(['Polimerasa Total (ul)', sumatoriaGlobalLote.polimerasa, '']);
+        csvRows.push([]);
+        csvRows.push([]);
+    }
 
     resultadosGlobalesPCR.forEach((res, index) => {
         const tagProtocolo = res.tipo_pcr === 'dream_taq' ? 'DreamTaq' : (res.tipo_pcr === 'inicial' ? 'PCR Inicial' : 'Casera');
         
         csvRows.push([`#${index + 1} - ${res.nombre} (${tagProtocolo})`, '', '']);
         csvRows.push(['Reacciones Totales', res.num_reacciones, '']);
-        csvRows.push(['Porcentaje Extra de Holgura', res.porcentaje_extra + '%', '']);
+        csvRows.push(['Porcentaje Extra', res.porcentaje_extra + '%', '']);
         csvRows.push(['Volumen Final de Reaccion', res.por_tubo, 'ul']);
         csvRows.push([]);
 
@@ -436,7 +524,7 @@ function exportarExcel() {
 
         csvRows.push([]);
         csvRows.push(['Total Master Mix (Por Tubo)', res.base_master_mix_tubo.toFixed(2), res.master_mix_sin_adn.toFixed(2)]);
-        csvRows.push(['ADN Molde (Carga independiente a tubos)', res.base_adn.toFixed(2), '']);
+        csvRows.push(['ADN Molde', res.base_adn.toFixed(2), '']);
         csvRows.push(['VOLUMEN FINAL ABSOLUTO', res.por_tubo.toFixed(2), res.total_con_extra.toFixed(2)]);
         csvRows.push([]);
         csvRows.push([]); 

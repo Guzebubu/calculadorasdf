@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row fade-in justify-content-center mt-4">
+    <div class="col-md-10 text-center">
+        <div class="card shadow-sm border-primary p-4 bg-light">
+            <h1 class="display-5 text-primary fw-bold"> SDF Laboratorio </h1>
+            <p class="lead text-muted">Molecular Calculator Golden Gate User Server - MCGGUS</p>
+            <hr class="my-4">
+            <p class="mb-4">Selecciona la herramienta analítica que deseas utilizar:</p>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-droplet-half fs-1 text-primary mb-3"></i>
+                            <h5 class="card-title fw-bold">Calculadora PCR</h5>
+                            <p class="card-text small text-muted">Master Mixes multi-lote, volúmenes dinámicos y sumatorias generales.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-primary mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-diagram-2 fs-1 text-success mb-3"></i>
+                            <h5 class="card-title fw-bold">Nivel 1 (Lv1)</h5>
+                            <p class="card-text small text-muted">Cálculo de múltiples ligaciones independientes.</p>
+                            <a href="{{ url_for('lv1_page') }}" class="btn btn-outline-success mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-diagram-3 fs-1 text-warning mb-3"></i>
+                            <h5 class="card-title fw-bold">Nivel 2 (Lv2)</h5>
+                            <p class="card-text small text-muted">Ensamblajes moleculares de múltiples guías y plásmidos base.</p>
+                            <a href="{{ url_for('lv2_page') }}" class="btn btn-outline-warning mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-flower1 fs-1 text-danger mb-3"></i>
+                            <h5 class="card-title fw-bold">Medios de Cultivo</h5>
+                            <p class="card-text small text-muted">Preparación de MS, germinación, co-cultivo, selección y enraizamiento.</p>
+                            <a href="{{ url_for('medios_page') }}" class="btn btn-outline-danger mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-heptagon-half fs-1 text-secondary mb-3"></i>
+                            <h5 class="card-title fw-bold">Molaridad</h5>
+                            <p class="card-text small text-muted">Cálculo de gramos a pesar o concentración molar resultante de soluciones.</p>
+                            <a href="{{ url_for('molaridad_page') }}" class="btn btn-outline-secondary mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-info hover-card">
+                        <div class="card-body d-flex flex-column align-items-center text-center">
+                            <i class="bi bi-tools fs-1 text-dark mb-3"></i>
+                            <h5 class="card-title fw-bold">Cálculos Generales</h5>
+                            <p class="card-text small text-muted">Diluciones universales (C1V1), resuspensión de oligos y digestiones.</p>
+                            <a href="{{ url_for('calculos_generales_page') }}" class="btn btn-outline-dark mt-auto w-100"><i class="bi bi-arrow-right"></i> Ingresar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
