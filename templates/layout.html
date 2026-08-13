@@ -15,6 +15,22 @@
         .fade-in { animation: fadeIn 0.4s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hover-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; transition: all .3s ease; }
+
+        /* ==================================================
+           INDICADOR DISCRETO DE PESTAÑA ACTIVA (SIN LÍNEA)
+           ================================================== */
+        .nav-link.activa-sutil {
+            font-weight: 800 !important;
+            color: #ffffff !important;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* Efecto hover suave para el resto de pestañas */
+        .nav-link:hover {
+            color: #f8f9fa !important;
+            transform: translateY(-1px);
+            transition: all 0.2s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -31,15 +47,48 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link fw-bold text-white" href="{{ url_for('home') }}"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-droplet-half"></i> PCR</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lv1_page') }}"><i class="bi bi-1-circle"></i> Nivel 1</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lv2_page') }}"><i class="bi bi-2-circle"></i> Nivel 2</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('medios_page') }}"><i class="bi bi-flower1"></i> Medios</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/molaridad"><i class="bi bi-heptagon-half"></i> Molaridad</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/calculos_generales"><i class="bi bi-tools"></i> Generales</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/recetas"><i class="bi bi-journal-text"></i> Recetas</a></li>
+                <ul class="navbar-nav ms-auto gap-2">
+                    <!-- PESTAÑAS DINÁMICAS -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'home' %}activa-sutil{% endif %}" href="{{ url_for('home') }}">
+                            <i class="bi bi-house-door-fill"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}activa-sutil{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-droplet-half"></i> PCR
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'lv1_page' %}activa-sutil{% endif %}" href="{{ url_for('lv1_page') }}">
+                            <i class="bi bi-1-circle"></i> Nivel 1
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'lv2_page' %}activa-sutil{% endif %}" href="{{ url_for('lv2_page') }}">
+                            <i class="bi bi-2-circle"></i> Nivel 2
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'medios_page' %}activa-sutil{% endif %}" href="{{ url_for('medios_page') }}">
+                            <i class="bi bi-flower1"></i> Medios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'molaridad_page' %}activa-sutil{% endif %}" href="/molaridad">
+                            <i class="bi bi-heptagon-half"></i> Molaridad
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'calculos_generales_page' %}activa-sutil{% endif %}" href="/calculos_generales">
+                            <i class="bi bi-tools"></i> Generales
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'recetas_page' %}activa-sutil{% endif %}" href="/recetas">
+                            <i class="bi bi-journal-text"></i> Recetas
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
